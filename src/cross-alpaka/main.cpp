@@ -49,41 +49,153 @@ namespace cross
     //! Upper bound on the row count so that `numRows * 3` cannot overflow `int`.
     constexpr int maxNumRows = std::numeric_limits<int>::max() / 3;
 
+    /** Effective memory budget for one run.
+     *
+     * `bytes` is the smallest finite limit the process can observe. `cgroupLimited` is set when a
+     * cgroup memory limit was the binding constraint, so the caller can name it in the diagnostic.
+     */
+    struct MemoryBudget
+    {
+        std::size_t bytes{0};
+        bool cgroupLimited{false};
+    };
+
+    /** Read one cgroup memory-limit file.
+     *
+     * Returns the finite limit in bytes, or `std::nullopt` when the file is absent, malformed or
+     * reports an unlimited limit (cgroup v2 writes `max`; cgroup v1 writes a huge sentinel).
+     */
+    inline std::optional<std::size_t> readMemoryLimitFile(char const* path)
+    {
+        std::FILE* f = std::fopen(path, "r");
+        if(f == nullptr)
+            return std::nullopt;
+        char buf[64] = {};
+        char* const got = std::fgets(buf, sizeof(buf), f);
+        std::fclose(f);
+        if(got == nullptr)
+            return std::nullopt;
+
+        // cgroup v2 uses the literal string "max" for an unlimited limit.
+        if(std::strncmp(buf, "max", 3) == 0)
+            return std::nullopt;
+
+        char* end = nullptr;
+        unsigned long long const value = std::strtoull(buf, &end, 10);
+        if(end == buf)
+            return std::nullopt;
+        // cgroup v1 reports an enormous sentinel (e.g. 9223372036854771712) for "unlimited".
+        if(value == 0 || value >= (1ull << 62))
+            return std::nullopt;
+        return static_cast<std::size_t>(value);
+    }
+
+    /** Best-effort cgroup memory limit for the current process.
+     *
+     * Handles cgroup v2 (`/sys/fs/cgroup/<path>/memory.max`, with the hierarchy path read from
+     * `/proc/self/cgroup`) and cgroup v1 (`/sys/fs/cgroup/memory/memory.limit_in_bytes`). Returns
+     * `std::nullopt` when no cgroup limit applies or the platform is not Linux.
+     */
+    inline std::optional<std::size_t> cgroupMemoryLimit()
+    {
+#if defined(__linux__)
+        // cgroup v2: the unified hierarchy line is "0::<path>".
+        if(std::FILE* f = std::fopen("/proc/self/cgroup", "r"); f != nullptr)
+        {
+            char line[512];
+            while(std::fgets(line, sizeof(line), f) != nullptr)
+            {
+                unsigned hierarchy = 0u;
+                char controllers[256] = {};
+                char path[256] = {};
+                if(std::sscanf(line, "%u:%255[^:]:%255s", &hierarchy, controllers, path) != 3)
+                    continue;
+                if(controllers[0] != '\0') // v1 controller entry, handled below
+                    continue;
+                std::string file = "/sys/fs/cgroup";
+                if(std::strcmp(path, "/") != 0)
+                    file += path;
+                file += "/memory.max";
+                if(auto const limit = readMemoryLimitFile(file.c_str()))
+                {
+                    std::fclose(f);
+                    return limit;
+                }
+            }
+            std::fclose(f);
+        }
+        // Fallbacks: root cgroup v2 path and cgroup v1.
+        if(auto const limit = readMemoryLimitFile("/sys/fs/cgroup/memory.max"))
+            return limit;
+        if(auto const limit = readMemoryLimitFile("/sys/fs/cgroup/memory/memory.limit_in_bytes"))
+            return limit;
+#endif
+        return std::nullopt;
+    }
+
     /** Best-effort estimate of the memory a run may use.
      *
-     * Returns currently available memory when the platform exposes it, otherwise the installed physical
-     * memory. Returns `std::nullopt` when no estimate is available; callers then skip the guard.
+     * Takes the smallest finite value of the process-available memory (`/proc/meminfo` MemAvailable,
+     * falling back to `sysconf` physical pages) and the cgroup memory limit. The cgroup limit matters
+     * in containers, where `/proc/meminfo` reports the host total and would otherwise let an
+     * over-large request through to an OOM kill. Returns `std::nullopt` when no estimate is
+     * available; callers then skip the guard.
      */
-    inline std::optional<std::size_t> availableMemoryBytes()
+    inline std::optional<MemoryBudget> availableMemoryBytes()
     {
+        std::size_t meminfoBytes = 0;
+        bool haveMeminfo = false;
 #if defined(__linux__)
         if(std::FILE* f = std::fopen("/proc/meminfo", "r"); f != nullptr)
         {
             char line[256];
-            std::size_t found = 0;
-            bool have = false;
             while(std::fgets(line, sizeof(line), f) != nullptr)
             {
                 unsigned long long kb = 0;
                 if(std::sscanf(line, "MemAvailable: %llu kB", &kb) == 1)
                 {
-                    found = static_cast<std::size_t>(kb) * 1024u;
-                    have = true;
+                    meminfoBytes = static_cast<std::size_t>(kb) * 1024u;
+                    haveMeminfo = true;
                     break;
                 }
             }
             std::fclose(f);
-            if(have)
-                return found;
         }
 #endif
+
+        std::size_t sysconfBytes = 0;
+        bool haveSysconf = false;
 #if CROSS_HAS_SYSCONF
         long const pages = ::sysconf(_SC_PHYS_PAGES);
         long const pageSize = ::sysconf(_SC_PAGE_SIZE);
         if(pages > 0 && pageSize > 0)
-            return static_cast<std::size_t>(pages) * static_cast<std::size_t>(pageSize);
+        {
+            sysconfBytes = static_cast<std::size_t>(pages) * static_cast<std::size_t>(pageSize);
+            haveSysconf = true;
+        }
 #endif
-        return std::nullopt;
+
+        auto const cgroup = cgroupMemoryLimit();
+
+        MemoryBudget budget{};
+        bool have = false;
+        auto const consider = [&](std::size_t bytes)
+        {
+            budget.bytes = have ? std::min(budget.bytes, bytes) : bytes;
+            have = true;
+        };
+        if(cgroup)
+            consider(*cgroup);
+        if(haveMeminfo)
+            consider(meminfoBytes);
+        if(haveSysconf)
+            consider(sysconfBytes);
+
+        if(!have)
+            return std::nullopt;
+        // Only flag the cgroup when it is the binding constraint, not merely present.
+        budget.cgroupLimited = cgroup.has_value() && budget.bytes == *cgroup;
+        return budget;
     }
 
     /** Upper bound of the memory one data type needs for a run, in bytes.
@@ -578,14 +690,16 @@ namespace cross
                 consider(estimatedFootprintBytes<float>(numRows));
             if(dtype == DType::Double || dtype == DType::Both)
                 consider(estimatedFootprintBytes<double>(numRows));
-            if(has && worst > *budget)
+            if(has && worst > budget->bytes)
             {
+                char const* const limitName = budget->cgroupLimited ? "cgroup memory limit" : "available";
                 fprintf(
                     stderr,
-                    "Error: requested size cannot be allocated: estimated %.2f GiB exceeds available %.2f "
+                    "Error: requested size cannot be allocated: estimated %.2f GiB exceeds %s %.2f "
                     "GiB.\n",
                     static_cast<double>(worst) / (1024.0 * 1024.0 * 1024.0),
-                    static_cast<double>(*budget) / (1024.0 * 1024.0 * 1024.0));
+                    limitName,
+                    static_cast<double>(budget->bytes) / (1024.0 * 1024.0 * 1024.0));
                 return EXIT_FAILURE;
             }
         }

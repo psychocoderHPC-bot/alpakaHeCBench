@@ -66,6 +66,14 @@ invalid arguments.
 `PASS` compares each kernel output against an independent double-precision reference computed from
 the stored inputs. Tolerances: `1e-3 + 1e-4*|ref|` for FP32 and `1e-9` for FP64.
 
+Before any stdout the benchmark compares the worst-case footprint of the requested size against the
+memory the process may use: the smallest finite value of `/proc/meminfo` `MemAvailable`, `sysconf`
+physical pages and the cgroup memory limit (cgroup v2 `memory.max` with the path from
+`/proc/self/cgroup`, cgroup v1 `memory/memory.limit_in_bytes`). A request above that budget prints
+one stderr line naming the binding limit, writes nothing to stdout and exits non-zero. This covers
+the native positional path and the extended `--size` path; the cgroup term prevents a container
+request larger than `memory.max` from passing and then being OOM-killed without a diagnostic.
+
 ## Timing
 
 Compatible mode matches the native scope: no warm-up, one `steady_clock` around the whole `repeat`
