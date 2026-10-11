@@ -6,18 +6,23 @@ SPDX-License-Identifier: CC0-1.0
 
 # cross (alpaka)
 
-Portable single-source [alpaka](https://github.com/alpaka-group/alpaka) port of the HeCBench
-`cross` benchmark. One C++20 translation unit computes the 3D cross product
-`out = x1 x x2` for a dense `(numRows, 3)` tensor and is compiled unchanged for the host CPU and
-for a CUDA GPU. There is no backend branch and no native CUDA/HIP/OpenMP kernel.
+Portable single-source [alpaka](https://github.com/alpaka-group/alpaka) port of the
+[ORNL/HeCBench](https://github.com/ORNL/HeCBench) `cross` benchmark. One C++20 translation
+unit computes the 3D cross product `out = x1 x x2` for a dense `(numRows, 3)` tensor and is
+compiled unchanged for the host CPU and for a CUDA GPU. There is no backend branch and no
+native CUDA/HIP/OpenMP kernel.
 
 ## Provenance
 
-- HeCBench `cross` reference: commit `0a17ee47ca6072192101036d4bf292e6612f22e6`
+- HeCBench `cross` reference: commit
+  [`0a17ee47ca6072192101036d4bf292e6612f22e6`](https://github.com/ORNL/HeCBench/commit/0a17ee47ca6072192101036d4bf292e6612f22e6)
   (`src/cross-{cuda,hip,omp,sycl}/main.*`).
-- Original alpaka port: PR #26 head `b0222a15` (`benchmark/cross/src/main_alpaka.cpp`, `helper.hpp`).
-- alpaka pin: `b7d339d07056a9a2a6c4051cc3927157bc5f0d51` (`dev_v3.x`), wired as the `extern/alpaka`
-  submodule.
+- Original alpaka port: PR #26 head
+  [`b0222a156a674afdccc8413c8506eb767f7cbdbe`](https://github.com/psychocoderHPC-bot/alpaka3/commit/b0222a156a674afdccc8413c8506eb767f7cbdbe)
+  (`benchmark/cross/src/main_alpaka.cpp`, `helper.hpp`).
+- alpaka pin:
+  [`b7d339d07056a9a2a6c4051cc3927157bc5f0d51`](https://github.com/alpaka-group/alpaka/commit/b7d339d07056a9a2a6c4051cc3927157bc5f0d51)
+  (`dev_v3.x`), wired as the `extern/alpaka` submodule.
 
 ## Computed quantities
 
@@ -169,7 +174,7 @@ JIT the Arc GPU and never the OpenCL CPU device.
 ## Fairness protocol
 
 The comparison follows `results/RESULTS.md` and ORNL/HeCBench
-[commit `0a17ee47`](https://github.com/ORNL/HeCBench/commit/0a17ee47ca6072192101036d4bf292e6612f22e6):
+[commit `0a17ee47ca6072192101036d4bf292e6612f22e6`](https://github.com/ORNL/HeCBench/commit/0a17ee47ca6072192101036d4bf292e6612f22e6):
 
 - No fast math on either side. ORNL uses plain `-O3`; `alpakaHeCBench_FAST_MATH` stays OFF.
 - CPU pairing is **icpx against icpx** with `-march=native` and `-qopenmp`. ORNL `cross-omp`
@@ -182,6 +187,27 @@ The comparison follows `results/RESULTS.md` and ORNL/HeCBench
 - Both sides time `repeat` enqueues plus one synchronization and report the mean, with one
   discarded warm-up to remove one-time first-touch cost.
 
-See `results/RESULTS.md` for the per-case table, the geomean ranking, achieved bandwidth and
-the candidate comparison. The final candidate selection is pending manager confirmation and
-is marked as such there.
+## Selected implementation
+
+The PR ships the unchanged baseline `src/cross-alpaka/main.cpp` (C1): an AoS flat
+`numRows * 3` buffer, `makeIdxMap` plus `worker::linearThreadsInGrid`, the `cross1`, `cross2`
+and `cross3` kernels, and `chunkSize 256`. C1 wins the primary geomean at 0.886 over the 20
+equally weighted (architecture, size, dtype) cases on CPU-icpx, AMD gfx1100 and Intel Arc A770
+FP32. Three portable alternatives all lose: C2 SoA planes plus `SimdAlgo::concurrent` (0.734),
+C3 SoA planes plus three `transform` calls (0.476), and C4 AoS plus a per-worker `Simd<T,4>`
+gather (0.336). No portable variant wins everywhere. The ORNL reference stays faster on CPU
+(0.83x) and Intel (0.96x) and reaches near parity on AMD (0.91x), so this is a "least
+regression / best port" choice, not a speedup win.
+
+See `results/RESULTS.md` for the per-case table, the per-architecture candidate comparison
+with the rejection reason for each variant, the full regression list, the geomean ranking,
+achieved bandwidth, the noise caveat and the C5 negative result.
+
+## Methodology correction
+
+`results/RESULTS.md` measures campaign2, which supersedes a first campaign with two defects.
+The first campaign's harness passed `--prog-args "--dtype float"` in a way that replaced the
+positional `<size> <repeat>`, so every Intel row ran the wrong size, and it had no in-process
+warm-up, so the single-kernel C2 candidate absorbed a roughly 25 ms cold start. Campaign2
+fixes both. The changes are recorded in
+`results/data/campaign2_applied_diffs.diff`.

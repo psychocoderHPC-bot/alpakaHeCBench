@@ -116,12 +116,16 @@ to a GPU with a lower compute capability. Use
 `src/cross-alpaka/README.md` documents the `cpu-icpx`, `hip` and `sycl` presets and the
 `scripts/` drivers (`build_all.sh`, `run_bench.sh`, `measure.py`,
 `one_binary_per_target.sh`). `src/cross-alpaka/RESULTS.md` holds the corrected campaign2
-measurements, the fairness protocol and the candidate ranking. The final candidate selection
-is pending manager confirmation and is marked as such in that report.
+measurements, the fairness protocol, the per-architecture candidate comparison and the
+geomean ranking. The PR ships the unchanged baseline `src/cross-alpaka/main.cpp` (C1), the
+primary geomean winner at 0.886 over four portable alternatives; the ORNL reference stays
+ahead on CPU and Intel and near parity on AMD, so this is a least-regression port, not a
+speedup win. The README also records the campaign1-to-campaign2 methodology correction.
 
 ## Native comparison
 
-Build the native references in a pinned HeCBench checkout (`0a17ee47`):
+Build the native references in a pinned HeCBench checkout
+([`0a17ee47ca6072192101036d4bf292e6612f22e6`](https://github.com/ORNL/HeCBench/commit/0a17ee47ca6072192101036d4bf292e6612f22e6)):
 
 ```bash
 git clone https://github.com/ORNL/HeCBench

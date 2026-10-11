@@ -9,6 +9,12 @@ SPDX-License-Identifier: CC0-1.0
 This report packages the corrected cross-opt campaign2 measurements for the alpaka `cross`
 benchmark against the ORNL/HeCBench `cross` references. Run id `cross-opt-20261011`.
 
+The PR ships the unchanged baseline `src/cross-alpaka/main.cpp` (C1). It wins the primary
+geomean at 0.886 over three portable alternatives, all rejected. The ORNL reference stays
+faster on CPU (C1 geomean 0.83) and Intel (0.96), and reaches near parity on AMD (0.91). No
+portable variant wins everywhere, so this is a "least regression / best port" choice. The
+selection reasoning is in the Selection section and summarized in the table below it.
+
 Every number here comes from `results/data/campaign2.csv` (348 rows). The older
 `campaign.csv` is superseded: it carried an Intel harness argument bug and no in-process
 warm-up. The intervening harness and warm-up fixes are recorded verbatim in
@@ -34,12 +40,13 @@ The comparison follows `evidence/fairness.md`:
 - **No fast math.** ORNL builds use plain `-O3`. No `-ffast-math` or `-Ofast` on either
   side; `alpakaHeCBench_FAST_MATH=OFF` in every alpaka build.
 - **CPU compiler matched.** The primary CPU pairing is icpx against icpx with
-  `-march=native` and `-qopenmp`. ORNL `cross-omp` is an offload benchmark: its `-qopenmp`
-  branch lowers the `#pragma omp target` region to a normal threaded region, so both sides
-  run true CPU-threaded kernels with matched compiler and flags. `g++` cannot consume
-  `-qopenmp`, and the g++-built ORNL `cross-omp` measures per-launch offload overhead
-  (flat across sizes 1e5 and 1e6, thread-count insensitive), so g++ is not a valid CPU
-  reference. The g++ rows are retained below only as a documented secondary.
+  `-march=native` and `-qopenmp`. ORNL `cross-omp` is an OpenMP-offload kernel
+  (`#pragma omp target`, `DEVICE=gpu`): its `-qopenmp` branch lowers the target region to a
+  normal threaded region, so both sides run true CPU-threaded kernels with matched compiler
+  and flags. `g++` cannot lower the offload region to host threads; libgomp runs it through a
+  host fallback that shows a flat ~25 ms per-launch artifact (24956 us at 1e5 and 26870 us at
+  1e6, thread-count insensitive), so g++ is not a valid CPU reference. The g++ rows are
+  retained below only as a documented secondary.
 - **One binary per target.** Each backend is built by its own preset into its own tree and
   links only its own runtime. `scripts/one_binary_per_target.sh` prints the `ldd` and
   `.comment` proof. No binary is reused across backends.
@@ -52,6 +59,27 @@ The comparison follows `evidence/fairness.md`:
   boundary is unchanged.
 - **Strict serialization.** One timed process at a time (harness flock). `OMP_NUM_THREADS=64`
   on the CPU. Sizes 100000, 1000000, 10000000, 10000003; repeats 100, 100, 30, 100.
+
+## Measurement environment
+
+All runs came from one shared `hal` node, strictly sequential, with no benchmarks running in
+parallel:
+
+- CPU: AMD EPYC 7452 (Zen2, AVX2 and FMA, no AVX-512), 32 cores / 64 threads.
+- AMD GPU: Radeon RX 7900 XTX, gfx1100, HIP.
+- Intel GPU: Arc A770, SYCL (FP32 only, no FP64).
+- Host toolchains: g++ 13.3, icpx 2026.1.1, hipcc 7.2, CMake 3.28.3.
+
+The host is not exclusive. The CPU alone shows a mean stddev/median near 16%, so sub-5% gaps
+on CPU, AMD and Intel are not resolvable. See Measurement noise.
+
+## Bottleneck characterization
+
+The kernels are memory-bandwidth bound, not compute bound. The C5 investigation recorded the
+operational intensity near 0.42 FLOP/byte and the realized bandwidth at 1e7 AMD (C1 about
+728 GB/s, 76% of the ~960 GB/s peak) and CPU (C1 about 87 GB/s, roughly half the L3 triad
+rate). The proposed C5 structure (row-chunks over SoA planes) is what C2 and C3 already do,
+so it cannot beat the memory wall.
 
 ## Kernel-role routing
 
@@ -259,7 +287,8 @@ From `results/data/campaign2_stability.csv` (stddev/median):
 | Intel GPU | 12 | 0.019 | 0.063 |
 
 CPU small-size cells are the noisiest. Treat CPU 100K and 1M sub-100us cells as
-low-confidence.
+low-confidence. The host is shared, so the CPU mean stddev/median is about 16%. Gaps below
+about 5% on CPU, AMD and Intel are not resolvable from these measurements.
 
 ## Candidate comparison
 
@@ -278,17 +307,155 @@ On the shared cells the baseline is the fastest, then C2, then C3, then C4.
 
 ## Selection
 
-The PRIMARY geomean winner is the baseline C1 (geomean 0.8864). `results/ranking.md` records
-`baseline` as the candidate the PR selects.
+**Selected implementation: the unchanged baseline `src/cross-alpaka/main.cpp` (C1).**
 
-**Pending final confirmation.** The final candidate choice is not settled here. The manager
-must confirm the selection before the PR states it as final, and fill in the decision below.
-Two facts must be weighed:
+C1 stores the data as an AoS flat `numRows * 3` buffer, indexes it with `makeIdxMap` and
+`worker::linearThreadsInGrid`, and runs the `cross1`, `cross2` and `cross3` kernels with
+`chunkSize 256`. The PR ships this source unchanged. The campaign built and measured three
+portable alternatives against it and rejected all of them.
 
-- All candidates are slower than the ORNL reference on the primary metric, so this is a
-  "least regression / best port" choice, not a speedup win.
-- C2's CPU cross3 cold-start behavior was attributed to cold-start attribution, not to SIMD
-  width or extra traffic (see `evidence/hal-diagnostic-cross-opt-20261011.md`); a manager may
-  prefer C2 if the selection criterion weights the warmed kernel over the first-enqueue cost.
+C1 wins the primary geomean at 0.886 over the 20 equally weighted (architecture, size, dtype)
+cases on CPU-icpx, AMD gfx1100 and Intel Arc A770 FP32. No portable variant wins everywhere.
+The ORNL reference stays ahead where a portable port would want parity: CPU geomean 0.83,
+Intel geomean 0.96, AMD geomean 0.91 (near parity). On AMD C1 lands close to ORNL-HIP overall
+(1.07 at 1e6 FP32, 0.92 at 1e7 FP32). The decision is therefore "least regression / best port",
+not a speedup win.
 
-Manager decision: <!-- MANAGER: fill in the final candidate, the reason, and the PR scope -->
+The C5 experiment, run on AMD at 1e7, measured the alpaka C1 slightly ahead of ORNL-HIP
+(1.08). That result sits inside the AMD noise band, so the campaign2 per-cell value (0.92)
+stays the authoritative number here; C5 is recorded as a documented negative result below.
+
+The per-architecture geomeans and the rejection reason for each variant:
+
+| candidate | CPU geomean | AMD geomean | Intel geomean | primary geomean | outcome |
+| --- | ---: | ---: | ---: | ---: | --- |
+| C1 baseline | 0.831 | 0.908 | 0.961 | 0.8864 | selected |
+| C2 SoA planes + `SimdAlgo::concurrent` | 0.872 | 0.757 | 0.488 | 0.7339 | rejected |
+| C3 SoA planes + 3x `transform` | 0.435 | 0.484 | 0.550 | 0.4759 | rejected |
+| C4 AoS + per-worker `Simd<T,4>` gather | 0.329 | 0.556 | 0.128 | 0.3360 | rejected |
+
+Rejection reasons, in one line each:
+
+- **C2** is the closest rival and the best CPU variant (geomean 0.87, 1.24x at 1e6), but it
+  loses on the AMD GPU and on Intel. SoA traffic and access cost is structural.
+- **C3** regresses everywhere: about 0.48 to 0.55 on GPU and 0.67 on CPU at 1e7.
+- **C4** issues real packed SIMD on the CPU (vmulps/FMA), yet loses on every target; its worst
+  cell is 0.04.
+
+The full regression list is in `results/ranking.md` and repeated below. The C5 follow-up is a
+documented negative result: correcting the C2 frame specification did not change the outcome.
+
+## Candidate comparison by architecture
+
+Source: `results/ranking.md`, `results/summary.json`, `results/data/campaign2_analysis.txt`.
+Primary geomean is over all 20 primary cases; the per-architecture columns are geomeans over
+that architecture's own cases (CPU 8, AMD 8, Intel 4).
+
+| candidate | CPU cases | CPU geomean | AMD cases | AMD geomean | Intel cases | Intel geomean | primary geomean | regressions |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| C1 baseline | 8 | 0.831 | 8 | 0.908 | 4 | 0.961 | 0.8864 | 14 |
+| C2 SoA SimdAlgo | 8 | 0.872 | 8 | 0.757 | 4 | 0.488 | 0.7339 | 17 |
+| C3 SoA transform | 8 | 0.435 | 8 | 0.484 | 4 | 0.550 | 0.4759 | 20 |
+| C4 AoS gather | 8 | 0.329 | 8 | 0.556 | 4 | 0.128 | 0.3360 | 20 |
+
+## Full regression list (primary cases, speedup < 1.0)
+
+Every primary cell where the candidate is slower than the ORNL reference. Median is the
+candidate value in microseconds, ORNL is the reference in microseconds.
+
+### C1 baseline (14)
+
+| arch | dtype | size | median_us | ORNL_us | speedup |
+| --- | --- | ---: | ---: | ---: | ---: |
+| AMD GPU | FP32 | 100000 | 10.798 | 7.209 | 0.668 |
+| AMD GPU | FP32 | 10000000 | 494.617 | 455.336 | 0.921 |
+| AMD GPU | FP32 | 10000003 | 493.304 | 453.887 | 0.920 |
+| AMD GPU | FP64 | 100000 | 12.545 | 10.150 | 0.809 |
+| AMD GPU | FP64 | 10000000 | 957.475 | 925.307 | 0.966 |
+| AMD GPU | FP64 | 10000003 | 957.659 | 924.401 | 0.965 |
+| CPU | FP32 | 100000 | 30.813 | 22.676 | 0.736 |
+| CPU | FP32 | 10000003 | 4202.010 | 4185.260 | 0.996 |
+| CPU | FP64 | 100000 | 80.950 | 21.610 | 0.267 |
+| CPU | FP64 | 1000000 | 84.367 | 82.197 | 0.974 |
+| CPU | FP64 | 10000000 | 8416.069 | 8220.940 | 0.977 |
+| Intel GPU | FP32 | 100000 | 38.385 | 27.433 | 0.715 |
+| Intel GPU | FP32 | 10000000 | 894.431 | 822.623 | 0.920 |
+| Intel GPU | FP32 | 10000003 | 893.377 | 817.948 | 0.916 |
+
+### C2 SoA SimdAlgo (17)
+
+| arch | dtype | size | median_us | ORNL_us | speedup |
+| --- | --- | ---: | ---: | ---: | ---: |
+| AMD GPU | FP32 | 100000 | 11.578 | 7.209 | 0.623 |
+| AMD GPU | FP32 | 1000000 | 34.470 | 20.652 | 0.599 |
+| AMD GPU | FP32 | 10000000 | 562.321 | 455.336 | 0.810 |
+| AMD GPU | FP32 | 10000003 | 559.719 | 453.887 | 0.811 |
+| AMD GPU | FP64 | 100000 | 19.592 | 10.150 | 0.518 |
+| AMD GPU | FP64 | 1000000 | 42.949 | 41.306 | 0.962 |
+| AMD GPU | FP64 | 10000000 | 987.139 | 925.307 | 0.937 |
+| AMD GPU | FP64 | 10000003 | 984.061 | 924.401 | 0.939 |
+| CPU | FP32 | 100000 | 23.909 | 22.676 | 0.948 |
+| CPU | FP32 | 10000003 | 4199.550 | 4185.260 | 0.997 |
+| CPU | FP64 | 100000 | 70.757 | 21.610 | 0.305 |
+| CPU | FP64 | 1000000 | 88.463 | 82.197 | 0.929 |
+| CPU | FP64 | 10000000 | 8254.508 | 8220.940 | 0.996 |
+| Intel GPU | FP32 | 100000 | 113.651 | 27.433 | 0.241 |
+| Intel GPU | FP32 | 1000000 | 266.942 | 138.405 | 0.518 |
+| Intel GPU | FP32 | 10000000 | 1308.933 | 822.623 | 0.628 |
+| Intel GPU | FP32 | 10000003 | 1131.808 | 817.948 | 0.723 |
+
+### C3 SoA transform (20, all primary cells)
+
+| arch | dtype | median/ORNL speedup range |
+| --- | --- | --- |
+| AMD GPU | FP32 | 0.324 to 0.547 |
+| AMD GPU | FP64 | 0.378 to 0.567 |
+| CPU | FP32 | 0.341 to 0.716 |
+| CPU | FP64 | 0.068 to 0.646 |
+| Intel GPU | FP32 | 0.393 to 0.767 |
+
+### C4 AoS gather (20, all primary cells)
+
+| arch | dtype | median/ORNL speedup range |
+| --- | --- | --- |
+| AMD GPU | FP32 | 0.306 to 0.921 |
+| AMD GPU | FP64 | 0.274 to 0.889 |
+| CPU | FP32 | 0.043 to 0.922 |
+| CPU | FP64 | 0.104 to 0.995 |
+| Intel GPU | FP32 | 0.073 to 0.236 |
+
+C3 and C4 regress on every primary cell, so their full per-cell rows stay in
+`results/ranking.md` and `results/data/campaign2_cross3_table.csv`.
+
+## C5 follow-up: documented negative result
+
+C5 rebuilt C2 with a floor frame specification instead of the ceil one. The first campaign
+found a frame over-subscription bug: the ceil spec drove the SoA SIMD path to a scalar
+fallback on the GPU at 1e6 and 1e7. C5 switches the GPU SIMD loop on, and still loses on the
+GPU. The verdict is NO-GO. SoA traffic and access cost is structural, so a frame fix cannot
+recover it.
+
+C5 also compared the alpaka C1 against ORNL-HIP on AMD at 1e7 and measured C1 about 1.08x
+ahead. That gap sits inside the AMD noise band (mean stddev/median 0.031), so it is not a
+resolvable win and does not change the selection.
+
+The same investigation falsified two competing explanations:
+
+- C2 does not spill registers (reported spills: 0).
+- AoS auto-vectorization does not appear under icpx. ORNL and alpaka both stay scalar on icpx
+  for the stride-3 row loop; packing appears only under gcc.
+
+## Methodology correction (campaign1 to campaign2)
+
+Campaign2 supersedes a first campaign that carried two defects. Fixes F1 and F2 are recorded
+verbatim in `results/data/campaign2_applied_diffs.diff`.
+
+- **F1 harness argument bug.** The harness passed `--prog-args "--dtype float"` in a way that
+  replaced the positional `<size> <repeat>` instead of appending to it, so every Intel row ran
+  the default 10,000,000 rows at repeat 100 regardless of the requested size. The corrected
+  harness always passes `<size> <repeat>` and appends extra arguments after them.
+- **F2 missing warm-up.** The first campaign omitted the in-process warm-up, so the
+  single-kernel C2 candidate absorbed a first-enqueue cold start of about 25 ms. Campaign2
+  adds one discarded warm-up (F2) before the timed loop.
+
+Both fixes change the Intel floor and the C2 CPU cells; the selection does not change.
