@@ -27,12 +27,6 @@ path = "src/scripts/benchmarks/subset.json"
 SPDX-FileCopyrightText = ["2020 Argonne National Laboratory (Zheming Jin)", "2020- Oak Ridge National Laboratory (Zheming Jin)"]
 SPDX-License-Identifier = "BSD-3-Clause"
 
-# Baseline result data.
-[[annotations]]
-path = "results/**"
-SPDX-FileCopyrightText = "2026 René Widera"
-SPDX-License-Identifier = "CC0-1.0"
-
 # External submodule: never vendored, keep its own metadata.
 [[annotations]]
 path = "extern/alpaka"

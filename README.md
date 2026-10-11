@@ -131,8 +131,15 @@ averages:
 ```
 
 The upstream `cross-omp` build targets an Intel offload backend and does not run
-on an NVIDIA-only host; use its host-OpenMP variant as the CPU reference. See
-`results/README.md` for the measured comparison on the A30 validation host.
+on an NVIDIA-only host; use its host-OpenMP variant as the CPU reference.
+
+Recorded ratios use `alpaka / native`; a value below 1.0 means alpaka is faster.
+The comparison reported here was produced on the A30 validation host (NVIDIA A30,
+sm_80, CUDA 13.4, g++ 13.3.0, AMD EPYC 7452). Each timed value is the mean over
+the `repeat` loop, matched to the native timing scope (no warm-up, a single
+synchronization at the end). The host-OpenMP build is a substitute for the
+prescribed Intel offload reference and is therefore reported separately, not
+folded into the ratio.
 
 ## The `make` wrapper and the upstream tools
 

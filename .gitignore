@@ -21,6 +21,3 @@ src/*/main
 # Python caches
 __pycache__/
 *.pyc
-
-# results are tracked data, do not ignore them
-!results/
