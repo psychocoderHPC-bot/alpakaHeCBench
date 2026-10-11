@@ -1,0 +1,6 @@
+# SPDX-FileCopyrightText: 2020 Argonne National Laboratory (Zheming Jin)
+# SPDX-FileCopyrightText: 2020- Oak Ridge National Laboratory (Zheming Jin)
+# SPDX-License-Identifier: BSD-3-Clause
+bh-sycl
+complex-sycl
+bn-hip

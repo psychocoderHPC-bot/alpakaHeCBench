@@ -1,9 +1,26 @@
 # SPDX-FileCopyrightText: 2026 René Widera
+#
 # SPDX-License-Identifier: ISC
+
 # CMake build trees
 build/
-# make wrapper output
+build*/
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+
+# make wrapper output: the built benchmark binary
 src/*/main
-src/*/build/
-# object files
+
+# compiled objects
 *.o
+*.obj
+
+# Python caches
+__pycache__/
+*.pyc
+
+# results are tracked data, do not ignore them
+!results/

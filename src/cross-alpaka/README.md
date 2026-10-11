@@ -1,7 +1,7 @@
 <!--
 SPDX-FileCopyrightText: 2026 René Widera
 
-SPDX-License-Identifier: ISC
+SPDX-License-Identifier: CC0-1.0
 -->
 
 # cross (alpaka)
