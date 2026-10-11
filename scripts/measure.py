@@ -175,7 +175,13 @@ def main():
     dtypes = ["FP32", "FP64"] if args.dtype == "both" else [down[args.dtype]]
 
     cmd = build_command(args)
-    cmd_str = " ".join(cmd)
+    # Match the real campaign harness: the CSV command string carries the
+    # OMP_NUM_THREADS prefix when that variable is exported for the child
+    # (campaign2.csv: "OMP_NUM_THREADS=64 <bin> <size> <repeat>").
+    env_prefix = ""
+    if "OMP_NUM_THREADS" in env:
+        env_prefix = "OMP_NUM_THREADS=%s " % env["OMP_NUM_THREADS"]
+    cmd_str = env_prefix + " ".join(cmd)
 
     # --- serial scheduling: hold an exclusive lock for the whole measurement ---
     os.makedirs(os.path.dirname(os.path.abspath(args.output)) or ".", exist_ok=True)
@@ -231,8 +237,8 @@ def main():
                     f"{median:.6f}",
                     f"{min(samples):.6f}",
                     f"{max(samples):.6f}",
-                    f"{statistics.pstdev(samples):.6f}",
-                    f"{statistics.fmean(wall_list):.6f}",
+                    f"{statistics.stdev(samples) if len(samples) > 1 else 0.0:.6f}",
+                    f"{statistics.median(wall_list):.6f}",
                     "PASS" if pass_all else "FAIL",
                     os.path.abspath(args.binary),
                     cmd_str,

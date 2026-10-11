@@ -15,10 +15,19 @@ faster on CPU (C1 geomean 0.83) and Intel (0.96), and reaches near parity on AMD
 portable variant wins everywhere, so this is a "least regression / best port" choice. The
 selection reasoning is in the Selection section and summarized in the table below it.
 
-Every number here comes from `results/data/campaign2.csv` (348 rows). The older
-`campaign.csv` is superseded: it carried an Intel harness argument bug and no in-process
-warm-up. The intervening harness and warm-up fixes are recorded verbatim in
+Every candidate number here comes from `results/data/campaign2.csv` (348 rows). The
+selected-implementation numbers come from `results/data/final_selected.csv`, the
+hal-validated re-run of the shipped presets (see the next section). The older `campaign.csv`
+is superseded: it carried an Intel harness argument bug and no in-process warm-up. The
+intervening harness and warm-up fixes are recorded verbatim in
 `results/data/campaign2_applied_diffs.diff`.
+
+The reconfigured final branch overlays the hal-validated build and measurement artifacts:
+`scripts/measure.py` (the re-run harness, with the OMP_NUM_THREADS command prefix and a
+sample stddev), and `results/data/final_selected.csv` and
+`results/data/one_binary_per_target.txt`. `CMakePresets.json` and the other `scripts/` are
+byte-identical between the two source trees. The doc prose in this file is unchanged except
+for the numbers the re-run contradicts.
 
 Raw data and the analysis script:
 
@@ -28,8 +37,39 @@ Raw data and the analysis script:
 - `results/data/campaign2_analysis.txt` - textual roll-up and geomean ranking.
 - `results/data/campaign2_exact_commands.log` - the exact command line per measured case.
 - `results/data/campaign2_applied_diffs.diff` - F1 (harness) and F2 (warm-up) fixes.
+- `results/data/final_selected.csv` - hal-validated re-run of the selected C1 binary
+  (`cpu-icpx`, `hip`, `sycl`), 13-column schema, same sizes/dtypes as campaign2.
+- `results/data/one_binary_per_target.txt` - `sha256`, `ldd` and `.comment` provenance for
+  the three selected-implementation binaries, the one-binary-per-target evidence.
 - `results/summary.md`, `results/ranking.md`, `results/summary.json` - generated reports.
 - `results/*.png` - runtime and speedup plots per architecture.
+
+## Hal-validated selected-implementation re-run
+
+The three presets (`cpu-icpx`, `hip`, `sycl`) were configured and built on the campaign
+host, and the resulting selected-implementation (C1) binaries were re-measured into
+`results/data/final_selected.csv`. This bundle is the build and measurement artifact of
+record; where it disagrees with the campaign2 per-case table, this table wins because it
+was produced from the shipped presets and scripts.
+
+The re-run confirms the campaign2 selection decisively: primary geomean 0.8863 over the
+same 20 primary cases, against 0.8864 from campaign2. The per-architecture geomeans are
+CPU 0.813, AMD 0.921, Intel 0.978, against campaign2 CPU 0.831, AMD 0.908, Intel 0.961.
+The differences sit inside the measurement-noise band and do not change any ranking or the
+selection.
+
+Four baseline cells move by more than 5% between the two runs:
+
+| arch | dtype | size | campaign2 median_us | re-run median_us | move |
+| --- | --- | ---: | ---: | ---: | ---: |
+| CPU | FP64 | 100000 | 80.950 | 96.089 | +18.7% |
+| AMD GPU | FP64 | 1000000 | 40.921 | 38.587 | -5.7% |
+| Intel GPU | FP32 | 100000 | 38.385 | 31.956 | -16.7% |
+| Intel GPU | FP32 | 1000000 | 97.674 | 109.540 | +12.1% |
+
+The CPU FP64 100K cell is the campaign2 worst case; the re-run confirms it is the worst
+cell at speedup 0.225 (campaign2 0.267). All four moves are noise-band effects on a shared
+host.
 
 ## Fairness protocol
 
@@ -325,11 +365,13 @@ The C5 experiment, run on AMD at 1e7, measured the alpaka C1 slightly ahead of O
 (1.08). That result sits inside the AMD noise band, so the campaign2 per-cell value (0.92)
 stays the authoritative number here; C5 is recorded as a documented negative result below.
 
-The per-architecture geomeans and the rejection reason for each variant:
+The per-architecture geomeans and the rejection reason for each variant. The C1 row shows
+the hal-validated re-run value first, with the campaign2 value in parentheses. C2, C3 and C4
+were measured only in campaign2, so their rows have one value.
 
 | candidate | CPU geomean | AMD geomean | Intel geomean | primary geomean | outcome |
 | --- | ---: | ---: | ---: | ---: | --- |
-| C1 baseline | 0.831 | 0.908 | 0.961 | 0.8864 | selected |
+| C1 baseline | 0.813 (0.831) | 0.921 (0.908) | 0.978 (0.961) | 0.8863 (0.8864) | selected |
 | C2 SoA planes + `SimdAlgo::concurrent` | 0.872 | 0.757 | 0.488 | 0.7339 | rejected |
 | C3 SoA planes + 3x `transform` | 0.435 | 0.484 | 0.550 | 0.4759 | rejected |
 | C4 AoS + per-worker `Simd<T,4>` gather | 0.329 | 0.556 | 0.128 | 0.3360 | rejected |
@@ -353,7 +395,7 @@ that architecture's own cases (CPU 8, AMD 8, Intel 4).
 
 | candidate | CPU cases | CPU geomean | AMD cases | AMD geomean | Intel cases | Intel geomean | primary geomean | regressions |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| C1 baseline | 8 | 0.831 | 8 | 0.908 | 4 | 0.961 | 0.8864 | 14 |
+| C1 baseline | 8 | 0.813 (0.831) | 8 | 0.921 (0.908) | 4 | 0.978 (0.961) | 0.8863 (0.8864) | 14 (14) |
 | C2 SoA SimdAlgo | 8 | 0.872 | 8 | 0.757 | 4 | 0.488 | 0.7339 | 17 |
 | C3 SoA transform | 8 | 0.435 | 8 | 0.484 | 4 | 0.550 | 0.4759 | 20 |
 | C4 AoS gather | 8 | 0.329 | 8 | 0.556 | 4 | 0.128 | 0.3360 | 20 |

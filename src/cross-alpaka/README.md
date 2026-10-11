@@ -197,7 +197,9 @@ FP32. Three portable alternatives all lose: C2 SoA planes plus `SimdAlgo::concur
 C3 SoA planes plus three `transform` calls (0.476), and C4 AoS plus a per-worker `Simd<T,4>`
 gather (0.336). No portable variant wins everywhere. The ORNL reference stays faster on CPU
 (0.83x) and Intel (0.96x) and reaches near parity on AMD (0.91x), so this is a "least
-regression / best port" choice, not a speedup win.
+regression / best port" choice, not a speedup win. A hal-validated re-run of the shipped
+presets (`results/data/final_selected.csv`) reproduces the selection at primary geomean
+0.8863, with per-architecture geomeans CPU 0.81, AMD 0.92 and Intel 0.98.
 
 See `results/RESULTS.md` for the per-case table, the per-architecture candidate comparison
 with the rejection reason for each variant, the full regression list, the geomean ranking,
