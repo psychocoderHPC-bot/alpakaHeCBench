@@ -1,0 +1,146 @@
+Corrected cross-opt campaign2 — cross3-role table (median us, speedup = ORNL/impl)
+
+===== CPU(icpx) =====
+impl                       dtype       size  median_us  speedup pf
+baseline-c1-cpu-icpx       FP32      100000     30.813    0.736 PASS  <-- REGRESSION
+baseline-c1-cpu-icpx       FP32     1000000     66.339    1.202 PASS
+baseline-c1-cpu-icpx       FP32    10000000   4156.109    1.004 PASS
+baseline-c1-cpu-icpx       FP32    10000003   4202.010    0.996 PASS  <-- REGRESSION
+baseline-c1-cpu-icpx       FP64      100000     80.950    0.267 PASS  <-- REGRESSION
+baseline-c1-cpu-icpx       FP64     1000000     84.367    0.974 PASS  <-- REGRESSION
+baseline-c1-cpu-icpx       FP64    10000000   8416.069    0.977 PASS  <-- REGRESSION
+baseline-c1-cpu-icpx       FP64    10000003   8262.009    1.015 PASS
+cand-c2-cpu-icpx           FP32      100000     23.909    0.948 PASS  <-- REGRESSION
+cand-c2-cpu-icpx           FP32     1000000     64.360    1.239 PASS
+cand-c2-cpu-icpx           FP32    10000000   4151.627    1.005 PASS
+cand-c2-cpu-icpx           FP32    10000003   4199.550    0.997 PASS  <-- REGRESSION
+cand-c2-cpu-icpx           FP64      100000     70.757    0.305 PASS  <-- REGRESSION
+cand-c2-cpu-icpx           FP64     1000000     88.463    0.929 PASS  <-- REGRESSION
+cand-c2-cpu-icpx           FP64    10000000   8254.508    0.996 PASS  <-- REGRESSION
+cand-c2-cpu-icpx           FP64    10000003   8292.396    1.011 PASS
+cand-c3-cpu-icpx           FP32      100000     66.487    0.341 PASS  <-- REGRESSION
+cand-c3-cpu-icpx           FP32     1000000    111.267    0.716 PASS  <-- REGRESSION
+cand-c3-cpu-icpx           FP32    10000000   6255.203    0.667 PASS  <-- REGRESSION
+cand-c3-cpu-icpx           FP32    10000003   6350.517    0.659 PASS  <-- REGRESSION
+cand-c3-cpu-icpx           FP64      100000    316.152    0.068 PASS  <-- REGRESSION
+cand-c3-cpu-icpx           FP64     1000000    188.957    0.435 PASS  <-- REGRESSION
+cand-c3-cpu-icpx           FP64    10000000  13038.777    0.630 PASS  <-- REGRESSION
+cand-c3-cpu-icpx           FP64    10000003  12974.714    0.646 PASS  <-- REGRESSION
+cand-c4-cpu-icpx           FP32      100000    521.615    0.043 PASS  <-- REGRESSION
+cand-c4-cpu-icpx           FP32     1000000    708.173    0.113 PASS  <-- REGRESSION
+cand-c4-cpu-icpx           FP32    10000000   4523.933    0.922 PASS  <-- REGRESSION
+cand-c4-cpu-icpx           FP32    10000003   4639.793    0.902 PASS  <-- REGRESSION
+cand-c4-cpu-icpx           FP64      100000    207.693    0.104 PASS  <-- REGRESSION
+cand-c4-cpu-icpx           FP64     1000000    246.472    0.333 PASS  <-- REGRESSION
+cand-c4-cpu-icpx           FP64    10000000   8336.053    0.986 PASS  <-- REGRESSION
+cand-c4-cpu-icpx           FP64    10000003   8424.140    0.995 PASS  <-- REGRESSION
+ornl-cross-omp-cpu-icpx    FP32      100000     22.676    1.000 PASS
+ornl-cross-omp-cpu-icpx    FP32     1000000     79.714    1.000 PASS
+ornl-cross-omp-cpu-icpx    FP32    10000000   4172.681    1.000 PASS
+ornl-cross-omp-cpu-icpx    FP32    10000003   4185.260    1.000 PASS
+ornl-cross-omp-cpu-icpx    FP64      100000     21.610    1.000 PASS
+ornl-cross-omp-cpu-icpx    FP64     1000000     82.197    1.000 PASS
+ornl-cross-omp-cpu-icpx    FP64    10000000   8220.940    1.000 PASS
+ornl-cross-omp-cpu-icpx    FP64    10000003   8384.381    1.000 PASS
+
+===== CPU(g++) =====
+impl                       dtype       size  median_us  speedup pf
+baseline-c1-cpu-gcc        FP32      100000   6029.967    4.139 PASS
+baseline-c1-cpu-gcc        FP32     1000000     89.782  299.283 PASS
+baseline-c1-cpu-gcc        FP32    10000000   9069.234    3.670 PASS
+baseline-c1-cpu-gcc        FP32    10000003   9021.101    3.635 PASS
+baseline-c1-cpu-gcc        FP64      100000   6070.025    4.157 PASS
+baseline-c1-cpu-gcc        FP64     1000000    121.548  240.841 PASS
+baseline-c1-cpu-gcc        FP64    10000000  12245.200    3.008 PASS
+baseline-c1-cpu-gcc        FP64    10000003  12209.770    3.292 PASS
+ornl-cross-omp-cpu-gcc     FP32      100000  24956.410    1.000 PASS
+ornl-cross-omp-cpu-gcc     FP32     1000000  26870.357    1.000 PASS
+ornl-cross-omp-cpu-gcc     FP32    10000000  33279.883    1.000 PASS
+ornl-cross-omp-cpu-gcc     FP32    10000003  32787.258    1.000 PASS
+ornl-cross-omp-cpu-gcc     FP64      100000  25234.135    1.000 PASS
+ornl-cross-omp-cpu-gcc     FP64     1000000  29273.740    1.000 PASS
+ornl-cross-omp-cpu-gcc     FP64    10000000  36836.582    1.000 PASS
+ornl-cross-omp-cpu-gcc     FP64    10000003  40198.602    1.000 PASS
+
+===== AMD(gfx1100) =====
+impl                       dtype       size  median_us  speedup pf
+baseline-c1-hip            FP32      100000     10.798    0.668 PASS  <-- REGRESSION
+baseline-c1-hip            FP32     1000000     19.306    1.070 PASS
+baseline-c1-hip            FP32    10000000    494.617    0.921 PASS  <-- REGRESSION
+baseline-c1-hip            FP32    10000003    493.304    0.920 PASS  <-- REGRESSION
+baseline-c1-hip            FP64      100000     12.545    0.809 PASS  <-- REGRESSION
+baseline-c1-hip            FP64     1000000     40.921    1.009 PASS
+baseline-c1-hip            FP64    10000000    957.475    0.966 PASS  <-- REGRESSION
+baseline-c1-hip            FP64    10000003    957.659    0.965 PASS  <-- REGRESSION
+cand-c2-hip                FP32      100000     11.578    0.623 PASS  <-- REGRESSION
+cand-c2-hip                FP32     1000000     34.470    0.599 PASS  <-- REGRESSION
+cand-c2-hip                FP32    10000000    562.321    0.810 PASS  <-- REGRESSION
+cand-c2-hip                FP32    10000003    559.719    0.811 PASS  <-- REGRESSION
+cand-c2-hip                FP64      100000     19.592    0.518 PASS  <-- REGRESSION
+cand-c2-hip                FP64     1000000     42.949    0.962 PASS  <-- REGRESSION
+cand-c2-hip                FP64    10000000    987.139    0.937 PASS  <-- REGRESSION
+cand-c2-hip                FP64    10000003    984.061    0.939 PASS  <-- REGRESSION
+cand-c3-hip                FP32      100000     22.258    0.324 PASS  <-- REGRESSION
+cand-c3-hip                FP32     1000000     44.230    0.467 PASS  <-- REGRESSION
+cand-c3-hip                FP32    10000000    833.074    0.547 PASS  <-- REGRESSION
+cand-c3-hip                FP32    10000003    847.134    0.536 PASS  <-- REGRESSION
+cand-c3-hip                FP64      100000     26.858    0.378 PASS  <-- REGRESSION
+cand-c3-hip                FP64     1000000     72.909    0.567 PASS  <-- REGRESSION
+cand-c3-hip                FP64    10000000   1631.648    0.567 PASS  <-- REGRESSION
+cand-c3-hip                FP64    10000003   1666.652    0.555 PASS  <-- REGRESSION
+cand-c4-hip                FP32      100000     23.596    0.306 PASS  <-- REGRESSION
+cand-c4-hip                FP32     1000000     52.345    0.395 PASS  <-- REGRESSION
+cand-c4-hip                FP32    10000000    494.657    0.921 PASS  <-- REGRESSION
+cand-c4-hip                FP32    10000003    493.696    0.919 PASS  <-- REGRESSION
+cand-c4-hip                FP64      100000     36.991    0.274 PASS  <-- REGRESSION
+cand-c4-hip                FP64     1000000     99.521    0.415 PASS  <-- REGRESSION
+cand-c4-hip                FP64    10000000   1051.162    0.880 PASS  <-- REGRESSION
+cand-c4-hip                FP64    10000003   1039.945    0.889 PASS  <-- REGRESSION
+ornl-cross-hip             FP32      100000      7.209    1.000 PASS
+ornl-cross-hip             FP32     1000000     20.652    1.000 PASS
+ornl-cross-hip             FP32    10000000    455.336    1.000 PASS
+ornl-cross-hip             FP32    10000003    453.887    1.000 PASS
+ornl-cross-hip             FP64      100000     10.150    1.000 PASS
+ornl-cross-hip             FP64     1000000     41.306    1.000 PASS
+ornl-cross-hip             FP64    10000000    925.307    1.000 PASS
+ornl-cross-hip             FP64    10000003    924.401    1.000 PASS
+
+===== Intel(SYCL A770) =====
+impl                       dtype       size  median_us  speedup pf
+baseline-c1-sycl           FP32      100000     38.385    0.715 PASS  <-- REGRESSION
+baseline-c1-sycl           FP32     1000000     97.674    1.417 PASS
+baseline-c1-sycl           FP32    10000000    894.431    0.920 PASS  <-- REGRESSION
+baseline-c1-sycl           FP32    10000003    893.377    0.916 PASS  <-- REGRESSION
+cand-c2-sycl               FP32      100000    113.651    0.241 PASS  <-- REGRESSION
+cand-c2-sycl               FP32     1000000    266.942    0.518 PASS  <-- REGRESSION
+cand-c2-sycl               FP32    10000000   1308.933    0.628 PASS  <-- REGRESSION
+cand-c2-sycl               FP32    10000003   1131.808    0.723 PASS  <-- REGRESSION
+cand-c3-sycl               FP32      100000     69.764    0.393 PASS  <-- REGRESSION
+cand-c3-sycl               FP32     1000000    180.382    0.767 PASS  <-- REGRESSION
+cand-c3-sycl               FP32    10000000   1507.504    0.546 PASS  <-- REGRESSION
+cand-c3-sycl               FP32    10000003   1474.664    0.555 PASS  <-- REGRESSION
+cand-c4-sycl               FP32      100000    374.306    0.073 PASS  <-- REGRESSION
+cand-c4-sycl               FP32     1000000    585.715    0.236 PASS  <-- REGRESSION
+cand-c4-sycl               FP32    10000000   6617.034    0.124 PASS  <-- REGRESSION
+cand-c4-sycl               FP32    10000003   6607.750    0.124 PASS  <-- REGRESSION
+ornl-cross-sycl-fp32       FP32      100000     27.433    1.000 PASS
+ornl-cross-sycl-fp32       FP32     1000000    138.405    1.000 PASS
+ornl-cross-sycl-fp32       FP32    10000000    822.623    1.000 PASS
+ornl-cross-sycl-fp32       FP32    10000003    817.948    1.000 PASS
+
+===== geomean speedup per impl (vs its ORNL reference, all cases) =====
+  baseline-c1-cpu-gcc        geomean=10.636
+  baseline-c1-sycl           geomean=0.961
+  baseline-c1-hip            geomean=0.908
+  cand-c2-cpu-icpx           geomean=0.873
+  baseline-c1-cpu-icpx       geomean=0.831
+  cand-c2-hip                geomean=0.757
+  cand-c4-hip                geomean=0.556
+  cand-c3-sycl               geomean=0.550
+  cand-c2-sycl               geomean=0.488
+  cand-c3-hip                geomean=0.483
+  cand-c3-cpu-icpx           geomean=0.436
+  cand-c4-cpu-icpx           geomean=0.329
+  cand-c4-sycl               geomean=0.128
+  WINNER (highest geomean): baseline-c1-cpu-gcc (10.636)
+  WORST CASE: cand-c4-cpu-icpx FP32 size=100000 speedup=0.043 (CPU(icpx))

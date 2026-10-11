@@ -1,0 +1,199 @@
+### F1 harness (measure.py)
+--- /home/agent/cross-opt/harness/measure.py	2026-10-11 19:00:33.951283313 +0000
++++ /home/agent/cross-opt/TARGET/measure.py	2026-10-11 19:50:18.166265150 +0000
+@@ -100,7 +100,12 @@
+     ap.add_argument("--output", default="/home/agent/cross-opt/harness/results.csv")
+     ap.add_argument("--cwd", default=None)
+     ap.add_argument("--prog-args", default="",
+-                    help="if set, REPLACE the default \"<size> <repeat>\" program args with these (shlex-split); lets FP32-only runs pass --dtype float")
++                    help="extra program args (shlex-split), APPENDED after the positional <size> <repeat>; never replaces them")
++    ap.add_argument("--prog-args-mode", choices=["append", "extended"], default="append",
++                    help="append: <binary> <size> <repeat> <prog-args> (native+flags); "
++                         "extended: <binary> --size <size> --repeat <repeat> <prog-args> "
++                         "(alpaka extended interface, required when named flags are combined "
++                         "with a size)")
+     ap.add_argument("--single-threaded-scheduler", action="store_true",
+                     default=True,
+                     help="assert serial scheduling (default ON)")
+@@ -116,11 +121,17 @@
+         env[k] = v
+ 
+     binary = os.path.abspath(args.binary)
+-    if args.prog_args:
+-        import shlex
+-        cmd = [binary] + shlex.split(args.prog_args)
++    import shlex
++    # F1: ALWAYS pass the positional <size> <repeat>. Any --prog-args are
++    # APPENDED after them (never replace them). The former code replaced the
++    # positionals whenever --prog-args was set, which silently dropped <size>
++    # and <repeat> for every Intel SYCL row.
++    if args.prog_args_mode == "extended":
++        cmd = [binary, "--size", str(args.size), "--repeat", str(args.repeat)]
+     else:
+         cmd = [binary, str(args.size), str(args.repeat)]
++    if args.prog_args:
++        cmd += shlex.split(args.prog_args)
+     if args.taskset:
+         cmd = ["taskset", "-c", str(args.taskset)] + cmd
+ 
+
+### F2 alpaka baseline C1
+--- /home/agent/cross-opt/alpakaHeCBench/src/cross-alpaka/main.cpp.f2bak	2026-10-11 19:49:57.828677381 +0000
++++ /home/agent/cross-opt/alpakaHeCBench/src/cross-alpaka/main.cpp	2026-10-11 19:49:57.851678046 +0000
+@@ -461,6 +461,11 @@
+     double timeKernelMean(auto& queue, auto const& frameSpec, T_KernelBundle const& kernel, int repeat)
+     {
+         using namespace alpaka;
++        // F2 warm-up: discard one enqueue before the timed loop. The measured boundary is
++        // unchanged (repeat timed enqueues + one wait, mean us); this only removes the
++        // one-time first-touch/allocation cost from the first timed kernel.
++        queue.enqueue(frameSpec, kernel);
++        onHost::wait(queue);
+         auto const start = std::chrono::steady_clock::now();
+         for(int i = 0; i < repeat; ++i)
+             queue.enqueue(frameSpec, kernel);
+
+### F2 alpaka cand C2
+--- /home/agent/cross-opt/candC2/alpakaHeCBench/src/cross-alpaka/main.cpp.f2bak	2026-10-11 19:49:57.831677467 +0000
++++ /home/agent/cross-opt/candC2/alpakaHeCBench/src/cross-alpaka/main.cpp	2026-10-11 19:49:57.851678046 +0000
+@@ -432,6 +432,11 @@
+     double timeKernelMean(auto& queue, auto const& frameSpec, T_KernelBundle const& kernel, int repeat)
+     {
+         using namespace alpaka;
++        // F2 warm-up: discard one enqueue before the timed loop. The measured boundary is
++        // unchanged (repeat timed enqueues + one wait, mean us); this only removes the
++        // one-time first-touch/allocation cost from the first timed kernel.
++        queue.enqueue(frameSpec, kernel);
++        onHost::wait(queue);
+         auto const start = std::chrono::steady_clock::now();
+         for(int i = 0; i < repeat; ++i)
+             queue.enqueue(frameSpec, kernel);
+
+### F2 alpaka cand C3
+--- /home/agent/cross-opt/candC3/alpakaHeCBench/src/cross-alpaka/main.cpp.f2bak	2026-10-11 19:49:57.835677583 +0000
++++ /home/agent/cross-opt/candC3/alpakaHeCBench/src/cross-alpaka/main.cpp	2026-10-11 19:49:57.851678046 +0000
+@@ -507,6 +507,11 @@
+     double timeKernelMean(auto& queue, auto const& frameSpec, T_KernelBundle const& kernel, int repeat)
+     {
+         using namespace alpaka;
++        // F2 warm-up: discard one enqueue before the timed loop. The measured boundary is
++        // unchanged (repeat timed enqueues + one wait, mean us); this only removes the
++        // one-time first-touch/allocation cost from the first timed kernel.
++        queue.enqueue(frameSpec, kernel);
++        onHost::wait(queue);
+         auto const start = std::chrono::steady_clock::now();
+         for(int i = 0; i < repeat; ++i)
+             queue.enqueue(frameSpec, kernel);
+
+### F2 alpaka cand C4
+--- /home/agent/cross-opt/candC4/alpakaHeCBench/src/cross-alpaka/main.cpp.f2bak	2026-10-11 19:49:57.839677699 +0000
++++ /home/agent/cross-opt/candC4/alpakaHeCBench/src/cross-alpaka/main.cpp	2026-10-11 19:49:57.851678046 +0000
+@@ -538,6 +538,11 @@
+     double timeKernelMean(auto& queue, auto const& frameSpec, T_KernelBundle const& kernel, int repeat)
+     {
+         using namespace alpaka;
++        // F2 warm-up: discard one enqueue before the timed loop. The measured boundary is
++        // unchanged (repeat timed enqueues + one wait, mean us); this only removes the
++        // one-time first-touch/allocation cost from the first timed kernel.
++        queue.enqueue(frameSpec, kernel);
++        onHost::wait(queue);
+         auto const start = std::chrono::steady_clock::now();
+         for(int i = 0; i < repeat; ++i)
+             queue.enqueue(frameSpec, kernel);
+
+### F2 ORNL hip
+--- /home/agent/cross-opt/ORNL-HeCBench/src/cross-hip/main.cu	2026-10-11 17:45:14.893643349 +0000
++++ /home/agent/cross-opt/TARGET/src/ornl_hip_warm.cu	2026-10-11 19:52:59.650905899 +0000
+@@ -141,6 +141,9 @@
+   dim3 block (256);
+ 
+   hipDeviceSynchronize();
++  // F2 ORNL warm-up: one discarded launch, outside the timed region.
++  cross_kernel<<<grid, block>>>(nrows, d_o, d_a, d_b, 1, 1, 1);
++  hipDeviceSynchronize();
+   auto start = std::chrono::steady_clock::now();
+ 
+   for (int i = 0; i < repeat; i++) 
+@@ -153,6 +156,9 @@
+ 
+   hipMemcpy(o, d_o, size_bytes, hipMemcpyDeviceToHost);
+ 
++  // F2 ORNL warm-up: one discarded launch, outside the timed region.
++  cross2_kernel<<<grid, block>>>(nrows, d_o, d_a, d_b, 1, 1, 1);
++  hipDeviceSynchronize();
+   start = std::chrono::steady_clock::now();
+ 
+   for (int i = 0; i < repeat; i++) 
+@@ -165,6 +171,9 @@
+ 
+   hipMemcpy(o2, d_o, size_bytes, hipMemcpyDeviceToHost);
+ 
++  // F2 ORNL warm-up: one discarded launch, outside the timed region.
++  cross3_kernel<<<grid, block>>>(nrows, d_o, d_a, d_b);
++  hipDeviceSynchronize();
+   start = std::chrono::steady_clock::now();
+ 
+   for (int i = 0; i < repeat; i++) 
+
+### F2 ORNL sycl
+--- /home/agent/cross-opt/refs/ornl_cross_sycl_fp32only.cpp	2026-10-11 18:05:41.500990073 +0000
++++ /home/agent/cross-opt/TARGET/src/ornl_sycl_warm.cpp	2026-10-11 19:53:44.577189832 +0000
+@@ -17,6 +17,16 @@
+ template <typename T>
+ class cross3;
+ 
++// F2 ORNL warm-up kernel class names (distinct from the timed kernels).
++template <typename T>
++class cross1_warm;
++
++template <typename T>
++class cross2_warm;
++
++template <typename T>
++class cross3_warm;
++
+ template <typename T, typename StrideType>
+ void cross_kernel(
+     sycl::nd_item<1> &item,
+@@ -162,6 +172,13 @@
+   sycl::range<1> lws (256);
+ 
+   q.wait();
++  // F2 ORNL warm-up: one discarded launch, outside the timed region.
++  q.submit([&] (sycl::handler &cgh) {
++    cgh.parallel_for<class cross1_warm<T>>(sycl::nd_range<1>(gws, lws), [=] (sycl::nd_item<1> item) {
++      cross_kernel(item, nrows, d_o, d_a, d_b, 1, 1, 1);
++    });
++  });
++  q.wait();
+   auto start = std::chrono::steady_clock::now();
+ 
+   for (int i = 0; i < repeat; i++) {
+@@ -179,6 +196,13 @@
+ 
+   q.memcpy(o, d_o, size_bytes).wait();
+ 
++  // F2 ORNL warm-up: one discarded launch, outside the timed region.
++  q.submit([&] (sycl::handler &cgh) {
++    cgh.parallel_for<class cross2_warm<T>>(sycl::nd_range<1>(gws, lws), [=] (sycl::nd_item<1> item) {
++      cross2_kernel(item, nrows, d_o, d_a, d_b, 1, 1, 1);
++    });
++  });
++  q.wait();
+   start = std::chrono::steady_clock::now();
+ 
+   for (int i = 0; i < repeat; i++) {
+@@ -196,6 +220,13 @@
+ 
+   q.memcpy(o2, d_o, size_bytes).wait();
+ 
++  // F2 ORNL warm-up: one discarded launch, outside the timed region.
++  q.submit([&] (sycl::handler &cgh) {
++    cgh.parallel_for<class cross3_warm<T>>(sycl::nd_range<1>(gws, lws), [=] (sycl::nd_item<1> item) {
++      cross3_kernel(item, nrows, d_o, d_a, d_b);
++    });
++  });
++  q.wait();
+   start = std::chrono::steady_clock::now();
+ 
+   for (int i = 0; i < repeat; i++) {
