@@ -1,0 +1,2221 @@
+{
+  "source_csv": "/tmp/alpaka-orchestration/cross-opt-20261011/measurements/campaign2.csv",
+  "source_rows": 348,
+  "supersedes": "campaign.csv (old: Intel wrong-size harness bug, no warm-up)",
+  "kernel_role_routing": {
+    "baseline": "cross3",
+    "C2": "cross3",
+    "C3": "crossSoA",
+    "C4": "cross4"
+  },
+  "ornl_role_tag": "cross3",
+  "arch_map": {
+    "cpu-gcc": "CPU-gcc",
+    "cpu-icpx": "CPU",
+    "cpu": "CPU",
+    "hip": "AMD-GPU",
+    "sycl": "Intel-GPU"
+  },
+  "primary_archs": [
+    "CPU",
+    "AMD-GPU",
+    "Intel-GPU"
+  ],
+  "regression_threshold": 1.0,
+  "bytes_per_row_model": {
+    "FP32": 36,
+    "FP64": 72
+  },
+  "overhead_rule": "smallest-size cell of a series is overhead-dominated when median[min]/median[next] >= 0.50 (adding >=10x work does not double runtime); Intel is NOT blanket-excluded in campaign2",
+  "reference_rows": [
+    {
+      "arch": "AMD-GPU",
+      "dtype": "FP32",
+      "size": 100000.0,
+      "impl": "ornl-cross-hip[cross3]",
+      "median_us": 7.209301,
+      "stddev_us": 0.114317,
+      "repeat": 100.0
+    },
+    {
+      "arch": "AMD-GPU",
+      "dtype": "FP32",
+      "size": 1000000.0,
+      "impl": "ornl-cross-hip[cross3]",
+      "median_us": 20.651993,
+      "stddev_us": 0.157816,
+      "repeat": 100.0
+    },
+    {
+      "arch": "AMD-GPU",
+      "dtype": "FP32",
+      "size": 10000000.0,
+      "impl": "ornl-cross-hip[cross3]",
+      "median_us": 455.336365,
+      "stddev_us": 0.9898,
+      "repeat": 30.0
+    },
+    {
+      "arch": "AMD-GPU",
+      "dtype": "FP32",
+      "size": 10000003.0,
+      "impl": "ornl-cross-hip[cross3]",
+      "median_us": 453.886566,
+      "stddev_us": 0.629446,
+      "repeat": 100.0
+    },
+    {
+      "arch": "AMD-GPU",
+      "dtype": "FP64",
+      "size": 100000.0,
+      "impl": "ornl-cross-hip[cross3]",
+      "median_us": 10.15009,
+      "stddev_us": 0.113534,
+      "repeat": 100.0
+    },
+    {
+      "arch": "AMD-GPU",
+      "dtype": "FP64",
+      "size": 1000000.0,
+      "impl": "ornl-cross-hip[cross3]",
+      "median_us": 41.305981,
+      "stddev_us": 0.134545,
+      "repeat": 100.0
+    },
+    {
+      "arch": "AMD-GPU",
+      "dtype": "FP64",
+      "size": 10000000.0,
+      "impl": "ornl-cross-hip[cross3]",
+      "median_us": 925.307434,
+      "stddev_us": 1.658221,
+      "repeat": 30.0
+    },
+    {
+      "arch": "AMD-GPU",
+      "dtype": "FP64",
+      "size": 10000003.0,
+      "impl": "ornl-cross-hip[cross3]",
+      "median_us": 924.400635,
+      "stddev_us": 0.649134,
+      "repeat": 100.0
+    },
+    {
+      "arch": "CPU",
+      "dtype": "FP32",
+      "size": 100000.0,
+      "impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "median_us": 22.675962,
+      "stddev_us": 0.217595,
+      "repeat": 100.0
+    },
+    {
+      "arch": "CPU",
+      "dtype": "FP32",
+      "size": 1000000.0,
+      "impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "median_us": 79.714211,
+      "stddev_us": 35.959393,
+      "repeat": 100.0
+    },
+    {
+      "arch": "CPU",
+      "dtype": "FP32",
+      "size": 10000000.0,
+      "impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "median_us": 4172.680664,
+      "stddev_us": 900.680856,
+      "repeat": 30.0
+    },
+    {
+      "arch": "CPU",
+      "dtype": "FP32",
+      "size": 10000003.0,
+      "impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "median_us": 4185.260254,
+      "stddev_us": 37.088414,
+      "repeat": 100.0
+    },
+    {
+      "arch": "CPU",
+      "dtype": "FP64",
+      "size": 100000.0,
+      "impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "median_us": 21.610132,
+      "stddev_us": 0.750681,
+      "repeat": 100.0
+    },
+    {
+      "arch": "CPU",
+      "dtype": "FP64",
+      "size": 1000000.0,
+      "impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "median_us": 82.197083,
+      "stddev_us": 69.54101,
+      "repeat": 100.0
+    },
+    {
+      "arch": "CPU",
+      "dtype": "FP64",
+      "size": 10000000.0,
+      "impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "median_us": 8220.94043,
+      "stddev_us": 94.546473,
+      "repeat": 30.0
+    },
+    {
+      "arch": "CPU",
+      "dtype": "FP64",
+      "size": 10000003.0,
+      "impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "median_us": 8384.380859,
+      "stddev_us": 381.230288,
+      "repeat": 100.0
+    },
+    {
+      "arch": "CPU-gcc",
+      "dtype": "FP32",
+      "size": 100000.0,
+      "impl": "ornl-cross-omp-cpu-gcc[cross3]",
+      "median_us": 24956.410156,
+      "stddev_us": 1116.214745,
+      "repeat": 100.0
+    },
+    {
+      "arch": "CPU-gcc",
+      "dtype": "FP32",
+      "size": 1000000.0,
+      "impl": "ornl-cross-omp-cpu-gcc[cross3]",
+      "median_us": 26870.357422,
+      "stddev_us": 1381.141072,
+      "repeat": 100.0
+    },
+    {
+      "arch": "CPU-gcc",
+      "dtype": "FP32",
+      "size": 10000000.0,
+      "impl": "ornl-cross-omp-cpu-gcc[cross3]",
+      "median_us": 33279.882812,
+      "stddev_us": 558.869613,
+      "repeat": 30.0
+    },
+    {
+      "arch": "CPU-gcc",
+      "dtype": "FP32",
+      "size": 10000003.0,
+      "impl": "ornl-cross-omp-cpu-gcc[cross3]",
+      "median_us": 32787.257812,
+      "stddev_us": 4224.152333,
+      "repeat": 100.0
+    },
+    {
+      "arch": "CPU-gcc",
+      "dtype": "FP64",
+      "size": 100000.0,
+      "impl": "ornl-cross-omp-cpu-gcc[cross3]",
+      "median_us": 25234.134766,
+      "stddev_us": 1082.075515,
+      "repeat": 100.0
+    },
+    {
+      "arch": "CPU-gcc",
+      "dtype": "FP64",
+      "size": 1000000.0,
+      "impl": "ornl-cross-omp-cpu-gcc[cross3]",
+      "median_us": 29273.740234,
+      "stddev_us": 746.023044,
+      "repeat": 100.0
+    },
+    {
+      "arch": "CPU-gcc",
+      "dtype": "FP64",
+      "size": 10000000.0,
+      "impl": "ornl-cross-omp-cpu-gcc[cross3]",
+      "median_us": 36836.582031,
+      "stddev_us": 1535.904157,
+      "repeat": 30.0
+    },
+    {
+      "arch": "CPU-gcc",
+      "dtype": "FP64",
+      "size": 10000003.0,
+      "impl": "ornl-cross-omp-cpu-gcc[cross3]",
+      "median_us": 40198.601562,
+      "stddev_us": 4466.607827,
+      "repeat": 100.0
+    },
+    {
+      "arch": "Intel-GPU",
+      "dtype": "FP32",
+      "size": 100000.0,
+      "impl": "ornl-cross-sycl-fp32[cross3]",
+      "median_us": 27.43309,
+      "stddev_us": 0.870849,
+      "repeat": 100.0
+    },
+    {
+      "arch": "Intel-GPU",
+      "dtype": "FP32",
+      "size": 1000000.0,
+      "impl": "ornl-cross-sycl-fp32[cross3]",
+      "median_us": 138.405334,
+      "stddev_us": 5.893085,
+      "repeat": 100.0
+    },
+    {
+      "arch": "Intel-GPU",
+      "dtype": "FP32",
+      "size": 10000000.0,
+      "impl": "ornl-cross-sycl-fp32[cross3]",
+      "median_us": 822.622803,
+      "stddev_us": 0.586289,
+      "repeat": 30.0
+    },
+    {
+      "arch": "Intel-GPU",
+      "dtype": "FP32",
+      "size": 10000003.0,
+      "impl": "ornl-cross-sycl-fp32[cross3]",
+      "median_us": 817.948364,
+      "stddev_us": 0.310076,
+      "repeat": 100.0
+    }
+  ],
+  "cases": [
+    {
+      "candidate": "C2",
+      "arch": "AMD-GPU",
+      "dtype": "FP32",
+      "size": 100000.0,
+      "median_us": 11.57813,
+      "speedup": 0.6226654045169643,
+      "stddev_us": 0.031895,
+      "variability": 0.002754762643017482,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 7.209301,
+      "ref_stddev_us": 0.114317,
+      "kernel_tag": "cross3",
+      "gbps": 310.93103981385593,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C3",
+      "arch": "AMD-GPU",
+      "dtype": "FP32",
+      "size": 100000.0,
+      "median_us": 22.25793,
+      "speedup": 0.3238980893551197,
+      "stddev_us": 0.087882,
+      "variability": 0.00394834560087124,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 7.209301,
+      "ref_stddev_us": 0.114317,
+      "kernel_tag": "crossSoA",
+      "gbps": 161.74010790760863,
+      "regression": true,
+      "overhead_dominated": true
+    },
+    {
+      "candidate": "C4",
+      "arch": "AMD-GPU",
+      "dtype": "FP32",
+      "size": 100000.0,
+      "median_us": 23.59557,
+      "speedup": 0.30553620870358295,
+      "stddev_us": 0.122705,
+      "variability": 0.005200340572404058,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 7.209301,
+      "ref_stddev_us": 0.114317,
+      "kernel_tag": "cross4",
+      "gbps": 152.57101227052368,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "baseline",
+      "arch": "AMD-GPU",
+      "dtype": "FP32",
+      "size": 100000.0,
+      "median_us": 10.79821,
+      "speedup": 0.6676385252740964,
+      "stddev_us": 0.008783,
+      "variability": 0.0008133755502069324,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 7.209301,
+      "ref_stddev_us": 0.114317,
+      "kernel_tag": "cross3",
+      "gbps": 333.3885894050959,
+      "regression": true,
+      "overhead_dominated": true
+    },
+    {
+      "candidate": "C2",
+      "arch": "AMD-GPU",
+      "dtype": "FP32",
+      "size": 1000000.0,
+      "median_us": 34.46968,
+      "speedup": 0.5991350369368095,
+      "stddev_us": 2.907991,
+      "variability": 0.08436373647797138,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 20.651993,
+      "ref_stddev_us": 0.157816,
+      "kernel_tag": "cross3",
+      "gbps": 1044.3961185598473,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C3",
+      "arch": "AMD-GPU",
+      "dtype": "FP32",
+      "size": 1000000.0,
+      "median_us": 44.22966,
+      "speedup": 0.4669263340482382,
+      "stddev_us": 0.127345,
+      "variability": 0.002879176552566762,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 20.651993,
+      "ref_stddev_us": 0.157816,
+      "kernel_tag": "crossSoA",
+      "gbps": 813.9334555137887,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C4",
+      "arch": "AMD-GPU",
+      "dtype": "FP32",
+      "size": 1000000.0,
+      "median_us": 52.34498,
+      "speedup": 0.3945362668970358,
+      "stddev_us": 0.267993,
+      "variability": 0.005119745962268015,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 20.651993,
+      "ref_stddev_us": 0.157816,
+      "kernel_tag": "cross4",
+      "gbps": 687.7450330480592,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "baseline",
+      "arch": "AMD-GPU",
+      "dtype": "FP32",
+      "size": 1000000.0,
+      "median_us": 19.30565,
+      "speedup": 1.0697382890500968,
+      "stddev_us": 0.150584,
+      "variability": 0.007799996374118458,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 20.651993,
+      "ref_stddev_us": 0.157816,
+      "kernel_tag": "cross3",
+      "gbps": 1864.73907897429,
+      "regression": false,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C2",
+      "arch": "AMD-GPU",
+      "dtype": "FP32",
+      "size": 10000000.0,
+      "median_us": 562.321367,
+      "speedup": 0.809744021340025,
+      "stddev_us": 6.659208,
+      "variability": 0.011842352773338595,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 455.336365,
+      "ref_stddev_us": 0.9898,
+      "kernel_tag": "cross3",
+      "gbps": 640.2033092226425,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C3",
+      "arch": "AMD-GPU",
+      "dtype": "FP32",
+      "size": 10000000.0,
+      "median_us": 833.074067,
+      "speedup": 0.5465736877871148,
+      "stddev_us": 0.641273,
+      "variability": 0.0007697670896290185,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 455.336365,
+      "ref_stddev_us": 0.9898,
+      "kernel_tag": "crossSoA",
+      "gbps": 432.13444549582886,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C4",
+      "arch": "AMD-GPU",
+      "dtype": "FP32",
+      "size": 10000000.0,
+      "median_us": 494.657067,
+      "speedup": 0.920509167616926,
+      "stddev_us": 1.430507,
+      "variability": 0.0028919166336301427,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 455.336365,
+      "ref_stddev_us": 0.9898,
+      "kernel_tag": "cross4",
+      "gbps": 727.7769267167874,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "baseline",
+      "arch": "AMD-GPU",
+      "dtype": "FP32",
+      "size": 10000000.0,
+      "median_us": 494.616733,
+      "speedup": 0.9205842314275283,
+      "stddev_us": 0.996176,
+      "variability": 0.0020140361891072536,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 455.336365,
+      "ref_stddev_us": 0.9898,
+      "kernel_tag": "cross3",
+      "gbps": 727.8362739903504,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C2",
+      "arch": "AMD-GPU",
+      "dtype": "FP32",
+      "size": 10000003.0,
+      "median_us": 559.71944,
+      "speedup": 0.8109179949154527,
+      "stddev_us": 2.400674,
+      "variability": 0.004289066679549311,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 453.886566,
+      "ref_stddev_us": 0.629446,
+      "kernel_tag": "cross3",
+      "gbps": 643.1795686781936,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C3",
+      "arch": "AMD-GPU",
+      "dtype": "FP32",
+      "size": 10000003.0,
+      "median_us": 847.13351,
+      "speedup": 0.5357910655665127,
+      "stddev_us": 1.998122,
+      "variability": 0.0023586860588244232,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 453.886566,
+      "ref_stddev_us": 0.629446,
+      "kernel_tag": "crossSoA",
+      "gbps": 424.96265789320506,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C4",
+      "arch": "AMD-GPU",
+      "dtype": "FP32",
+      "size": 10000003.0,
+      "median_us": 493.69574,
+      "speedup": 0.9193649635299669,
+      "stddev_us": 0.944799,
+      "variability": 0.0019137272685399312,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 453.886566,
+      "ref_stddev_us": 0.629446,
+      "kernel_tag": "cross4",
+      "gbps": 729.1942766206571,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "baseline",
+      "arch": "AMD-GPU",
+      "dtype": "FP32",
+      "size": 10000003.0,
+      "median_us": 493.30406,
+      "speedup": 0.9200949329304122,
+      "stddev_us": 0.649346,
+      "variability": 0.0013163199994745635,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 453.886566,
+      "ref_stddev_us": 0.629446,
+      "kernel_tag": "cross3",
+      "gbps": 729.7732518155233,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C2",
+      "arch": "AMD-GPU",
+      "dtype": "FP64",
+      "size": 100000.0,
+      "median_us": 19.59216,
+      "speedup": 0.5180689622787891,
+      "stddev_us": 0.485575,
+      "variability": 0.02478414835321884,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 10.15009,
+      "ref_stddev_us": 0.113534,
+      "kernel_tag": "cross3",
+      "gbps": 367.4939363500502,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C3",
+      "arch": "AMD-GPU",
+      "dtype": "FP64",
+      "size": 100000.0,
+      "median_us": 26.85816,
+      "speedup": 0.3779145704694588,
+      "stddev_us": 0.867734,
+      "variability": 0.03230802110047747,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 10.15009,
+      "ref_stddev_us": 0.113534,
+      "kernel_tag": "crossSoA",
+      "gbps": 268.0749537570705,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C4",
+      "arch": "AMD-GPU",
+      "dtype": "FP64",
+      "size": 100000.0,
+      "median_us": 36.99135,
+      "speedup": 0.27439090490074036,
+      "stddev_us": 0.683312,
+      "variability": 0.01847221039513292,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 10.15009,
+      "ref_stddev_us": 0.113534,
+      "kernel_tag": "cross4",
+      "gbps": 194.64009829324965,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "baseline",
+      "arch": "AMD-GPU",
+      "dtype": "FP64",
+      "size": 100000.0,
+      "median_us": 12.54516,
+      "speedup": 0.8090841408160598,
+      "stddev_us": 0.020295,
+      "variability": 0.0016177553733870275,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 10.15009,
+      "ref_stddev_us": 0.113534,
+      "kernel_tag": "cross3",
+      "gbps": 573.926518274777,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C2",
+      "arch": "AMD-GPU",
+      "dtype": "FP64",
+      "size": 1000000.0,
+      "median_us": 42.94903,
+      "speedup": 0.9617442116853396,
+      "stddev_us": 2.261052,
+      "variability": 0.05264500734940929,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 41.305981,
+      "ref_stddev_us": 0.134545,
+      "kernel_tag": "cross3",
+      "gbps": 1676.4057302341869,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C3",
+      "arch": "AMD-GPU",
+      "dtype": "FP64",
+      "size": 1000000.0,
+      "median_us": 72.90858,
+      "speedup": 0.5665448565861522,
+      "stddev_us": 2.200778,
+      "variability": 0.030185445937912933,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 41.305981,
+      "ref_stddev_us": 0.134545,
+      "kernel_tag": "crossSoA",
+      "gbps": 987.5380922245365,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C4",
+      "arch": "AMD-GPU",
+      "dtype": "FP64",
+      "size": 1000000.0,
+      "median_us": 99.52114,
+      "speedup": 0.4150473055272478,
+      "stddev_us": 10.503865,
+      "variability": 0.10554405827746748,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 41.305981,
+      "ref_stddev_us": 0.134545,
+      "kernel_tag": "cross4",
+      "gbps": 723.4643815374302,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "baseline",
+      "arch": "AMD-GPU",
+      "dtype": "FP64",
+      "size": 1000000.0,
+      "median_us": 40.92077,
+      "speedup": 1.0094135814159901,
+      "stddev_us": 1.075976,
+      "variability": 0.02629412887391904,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 41.305981,
+      "ref_stddev_us": 0.134545,
+      "kernel_tag": "cross3",
+      "gbps": 1759.497682961489,
+      "regression": false,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C2",
+      "arch": "AMD-GPU",
+      "dtype": "FP64",
+      "size": 10000000.0,
+      "median_us": 987.139467,
+      "speedup": 0.9373624142615705,
+      "stddev_us": 8.975274,
+      "variability": 0.00909220459726589,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 925.307434,
+      "ref_stddev_us": 1.658221,
+      "kernel_tag": "cross3",
+      "gbps": 729.3802183678672,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C3",
+      "arch": "AMD-GPU",
+      "dtype": "FP64",
+      "size": 10000000.0,
+      "median_us": 1631.648133,
+      "speedup": 0.567099863803785,
+      "stddev_us": 1.604185,
+      "variability": 0.0009831684709193365,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 925.307434,
+      "ref_stddev_us": 1.658221,
+      "kernel_tag": "crossSoA",
+      "gbps": 441.27161085655473,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C4",
+      "arch": "AMD-GPU",
+      "dtype": "FP64",
+      "size": 10000000.0,
+      "median_us": 1051.161567,
+      "speedup": 0.8802713712610459,
+      "stddev_us": 4.506197,
+      "variability": 0.004286873817942774,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 925.307434,
+      "ref_stddev_us": 1.658221,
+      "kernel_tag": "cross4",
+      "gbps": 684.9565495957673,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "baseline",
+      "arch": "AMD-GPU",
+      "dtype": "FP64",
+      "size": 10000000.0,
+      "median_us": 957.4746,
+      "speedup": 0.9664041573531036,
+      "stddev_us": 0.261947,
+      "variability": 0.00027358114774010716,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 925.307434,
+      "ref_stddev_us": 1.658221,
+      "kernel_tag": "cross3",
+      "gbps": 751.9781725802441,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C2",
+      "arch": "AMD-GPU",
+      "dtype": "FP64",
+      "size": 10000003.0,
+      "median_us": 984.06072,
+      "speedup": 0.9393735734112018,
+      "stddev_us": 1.45337,
+      "variability": 0.001476910896311358,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 924.400635,
+      "ref_stddev_us": 0.649134,
+      "kernel_tag": "cross3",
+      "gbps": 731.66238766242,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C3",
+      "arch": "AMD-GPU",
+      "dtype": "FP64",
+      "size": 10000003.0,
+      "median_us": 1666.65204,
+      "speedup": 0.5546452485667014,
+      "stddev_us": 1.555687,
+      "variability": 0.0009334203916973576,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 924.400635,
+      "ref_stddev_us": 0.649134,
+      "kernel_tag": "crossSoA",
+      "gbps": 432.00392086640954,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C4",
+      "arch": "AMD-GPU",
+      "dtype": "FP64",
+      "size": 10000003.0,
+      "median_us": 1039.94528,
+      "speedup": 0.8888935338982451,
+      "stddev_us": 1.423441,
+      "variability": 0.001368765287342811,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 924.400635,
+      "ref_stddev_us": 0.649134,
+      "kernel_tag": "cross4",
+      "gbps": 692.3443279631022,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "baseline",
+      "arch": "AMD-GPU",
+      "dtype": "FP64",
+      "size": 10000003.0,
+      "median_us": 957.65939,
+      "speedup": 0.9652707890223892,
+      "stddev_us": 0.542387,
+      "variability": 0.0005663673386004182,
+      "ref_impl": "ornl-cross-hip[cross3]",
+      "ref_median_us": 924.400635,
+      "ref_stddev_us": 0.649134,
+      "kernel_tag": "cross3",
+      "gbps": 751.8332963873513,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C2",
+      "arch": "CPU",
+      "dtype": "FP32",
+      "size": 100000.0,
+      "median_us": 23.90868,
+      "speedup": 0.9484405663549806,
+      "stddev_us": 17.656027,
+      "variability": 0.738477699312551,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 22.675962,
+      "ref_stddev_us": 0.217595,
+      "kernel_tag": "cross3",
+      "gbps": 150.57292999864484,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C3",
+      "arch": "CPU",
+      "dtype": "FP32",
+      "size": 100000.0,
+      "median_us": 66.48661,
+      "speedup": 0.3410605834768835,
+      "stddev_us": 9.487416,
+      "variability": 0.14269664222615652,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 22.675962,
+      "ref_stddev_us": 0.217595,
+      "kernel_tag": "crossSoA",
+      "gbps": 54.14624087466635,
+      "regression": true,
+      "overhead_dominated": true
+    },
+    {
+      "candidate": "C4",
+      "arch": "CPU",
+      "dtype": "FP32",
+      "size": 100000.0,
+      "median_us": 521.61514,
+      "speedup": 0.04347259168896056,
+      "stddev_us": 4.471645,
+      "variability": 0.008572690202205403,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 22.675962,
+      "ref_stddev_us": 0.217595,
+      "kernel_tag": "cross4",
+      "gbps": 6.90164016328207,
+      "regression": true,
+      "overhead_dominated": true
+    },
+    {
+      "candidate": "baseline",
+      "arch": "CPU",
+      "dtype": "FP32",
+      "size": 100000.0,
+      "median_us": 30.81349,
+      "speedup": 0.73591021335136,
+      "stddev_us": 16.224284,
+      "variability": 0.5265318534187461,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 22.675962,
+      "ref_stddev_us": 0.217595,
+      "kernel_tag": "cross3",
+      "gbps": 116.83194600806335,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C2",
+      "arch": "CPU",
+      "dtype": "FP32",
+      "size": 1000000.0,
+      "median_us": 64.35956,
+      "speedup": 1.23857607168228,
+      "stddev_us": 14.333545,
+      "variability": 0.22271042561509122,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 79.714211,
+      "ref_stddev_us": 35.959393,
+      "kernel_tag": "cross3",
+      "gbps": 559.3574598707636,
+      "regression": false,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C3",
+      "arch": "CPU",
+      "dtype": "FP32",
+      "size": 1000000.0,
+      "median_us": 111.2674,
+      "speedup": 0.7164201823714764,
+      "stddev_us": 1.460312,
+      "variability": 0.01312434729309753,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 79.714211,
+      "ref_stddev_us": 35.959393,
+      "kernel_tag": "crossSoA",
+      "gbps": 323.5449017412108,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C4",
+      "arch": "CPU",
+      "dtype": "FP32",
+      "size": 1000000.0,
+      "median_us": 708.17308,
+      "speedup": 0.1125631759399835,
+      "stddev_us": 2.769534,
+      "variability": 0.00391081513575749,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 79.714211,
+      "ref_stddev_us": 35.959393,
+      "kernel_tag": "cross4",
+      "gbps": 50.835030329026345,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "baseline",
+      "arch": "CPU",
+      "dtype": "FP32",
+      "size": 1000000.0,
+      "median_us": 66.33882,
+      "speedup": 1.2016223833948207,
+      "stddev_us": 0.447035,
+      "variability": 0.006738663726608342,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 79.714211,
+      "ref_stddev_us": 35.959393,
+      "kernel_tag": "cross3",
+      "gbps": 542.6686817763717,
+      "regression": false,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C2",
+      "arch": "CPU",
+      "dtype": "FP32",
+      "size": 10000000.0,
+      "median_us": 4151.626733,
+      "speedup": 1.0050712485379885,
+      "stddev_us": 174.649398,
+      "variability": 0.04206770242896978,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 4172.680664,
+      "ref_stddev_us": 900.680856,
+      "kernel_tag": "cross3",
+      "gbps": 86.71299785659224,
+      "regression": false,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C3",
+      "arch": "CPU",
+      "dtype": "FP32",
+      "size": 10000000.0,
+      "median_us": 6255.2032,
+      "speedup": 0.6670735594968362,
+      "stddev_us": 132.44258,
+      "variability": 0.02117318586868609,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 4172.680664,
+      "ref_stddev_us": 900.680856,
+      "kernel_tag": "crossSoA",
+      "gbps": 57.55208719678363,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C4",
+      "arch": "CPU",
+      "dtype": "FP32",
+      "size": 10000000.0,
+      "median_us": 4523.932767,
+      "speedup": 0.9223569135327957,
+      "stddev_us": 198.364907,
+      "variability": 0.043847890147037626,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 4172.680664,
+      "ref_stddev_us": 900.680856,
+      "kernel_tag": "cross4",
+      "gbps": 79.57677943979047,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "baseline",
+      "arch": "CPU",
+      "dtype": "FP32",
+      "size": 10000000.0,
+      "median_us": 4156.108633,
+      "speedup": 1.003987391202534,
+      "stddev_us": 100.330735,
+      "variability": 0.024140546809426962,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 4172.680664,
+      "ref_stddev_us": 900.680856,
+      "kernel_tag": "cross3",
+      "gbps": 86.61948755178267,
+      "regression": false,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C2",
+      "arch": "CPU",
+      "dtype": "FP32",
+      "size": 10000003.0,
+      "median_us": 4199.55009,
+      "speedup": 0.9965972935924667,
+      "stddev_us": 838.868036,
+      "variability": 0.19975188246891468,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 4185.260254,
+      "ref_stddev_us": 37.088414,
+      "kernel_tag": "cross3",
+      "gbps": 85.72349425173782,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C3",
+      "arch": "CPU",
+      "dtype": "FP32",
+      "size": 10000003.0,
+      "median_us": 6350.51663,
+      "speedup": 0.6590424839183516,
+      "stddev_us": 539.667089,
+      "variability": 0.08498002925472223,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 4185.260254,
+      "ref_stddev_us": 37.088414,
+      "kernel_tag": "crossSoA",
+      "gbps": 56.68831828568884,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C4",
+      "arch": "CPU",
+      "dtype": "FP32",
+      "size": 10000003.0,
+      "median_us": 4639.79258,
+      "speedup": 0.9020360677416316,
+      "stddev_us": 685.794342,
+      "variability": 0.14780711210155,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 4185.260254,
+      "ref_stddev_us": 37.088414,
+      "kernel_tag": "cross4",
+      "gbps": 77.5896986326057,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "baseline",
+      "arch": "CPU",
+      "dtype": "FP32",
+      "size": 10000003.0,
+      "median_us": 4202.0095,
+      "speedup": 0.9960139914010189,
+      "stddev_us": 42.559765,
+      "variability": 0.010128431408829512,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 4185.260254,
+      "ref_stddev_us": 37.088414,
+      "kernel_tag": "cross3",
+      "gbps": 85.67332082423897,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C2",
+      "arch": "CPU",
+      "dtype": "FP64",
+      "size": 100000.0,
+      "median_us": 70.75694,
+      "speedup": 0.3054136032451375,
+      "stddev_us": 7.854396,
+      "variability": 0.11100530916119324,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 21.610132,
+      "ref_stddev_us": 0.750681,
+      "kernel_tag": "cross3",
+      "gbps": 101.75680293692746,
+      "regression": true,
+      "overhead_dominated": true
+    },
+    {
+      "candidate": "C3",
+      "arch": "CPU",
+      "dtype": "FP64",
+      "size": 100000.0,
+      "median_us": 316.15229,
+      "speedup": 0.06835355201760519,
+      "stddev_us": 46.409836,
+      "variability": 0.1467958242529257,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 21.610132,
+      "ref_stddev_us": 0.750681,
+      "kernel_tag": "crossSoA",
+      "gbps": 22.773834723765564,
+      "regression": true,
+      "overhead_dominated": true
+    },
+    {
+      "candidate": "C4",
+      "arch": "CPU",
+      "dtype": "FP64",
+      "size": 100000.0,
+      "median_us": 207.69305,
+      "speedup": 0.10404841182697254,
+      "stddev_us": 37.537047,
+      "variability": 0.18073328404585517,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 21.610132,
+      "ref_stddev_us": 0.750681,
+      "kernel_tag": "cross4",
+      "gbps": 34.66654276587493,
+      "regression": true,
+      "overhead_dominated": true
+    },
+    {
+      "candidate": "baseline",
+      "arch": "CPU",
+      "dtype": "FP64",
+      "size": 100000.0,
+      "median_us": 80.94994,
+      "speedup": 0.26695673894261074,
+      "stddev_us": 8.599204,
+      "variability": 0.10622866428313597,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 21.610132,
+      "ref_stddev_us": 0.750681,
+      "kernel_tag": "cross3",
+      "gbps": 88.94385838951827,
+      "regression": true,
+      "overhead_dominated": true
+    },
+    {
+      "candidate": "C2",
+      "arch": "CPU",
+      "dtype": "FP64",
+      "size": 1000000.0,
+      "median_us": 88.46344,
+      "speedup": 0.9291644435260488,
+      "stddev_us": 12.349097,
+      "variability": 0.13959548713005054,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 82.197083,
+      "ref_stddev_us": 69.54101,
+      "kernel_tag": "cross3",
+      "gbps": 813.8955482626495,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C3",
+      "arch": "CPU",
+      "dtype": "FP64",
+      "size": 1000000.0,
+      "median_us": 188.95682,
+      "speedup": 0.43500458464531744,
+      "stddev_us": 33.983112,
+      "variability": 0.17984591400299815,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 82.197083,
+      "ref_stddev_us": 69.54101,
+      "kernel_tag": "crossSoA",
+      "gbps": 381.0394353588297,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C4",
+      "arch": "CPU",
+      "dtype": "FP64",
+      "size": 1000000.0,
+      "median_us": 246.47176,
+      "speedup": 0.3334949326446162,
+      "stddev_us": 190.696451,
+      "variability": 0.773705072743425,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 82.197083,
+      "ref_stddev_us": 69.54101,
+      "kernel_tag": "cross4",
+      "gbps": 292.12271620894825,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "baseline",
+      "arch": "CPU",
+      "dtype": "FP64",
+      "size": 1000000.0,
+      "median_us": 84.36744,
+      "speedup": 0.9742749454054788,
+      "stddev_us": 177.496663,
+      "variability": 2.103852659272345,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 82.197083,
+      "ref_stddev_us": 69.54101,
+      "kernel_tag": "cross3",
+      "gbps": 853.4097988513104,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C2",
+      "arch": "CPU",
+      "dtype": "FP64",
+      "size": 10000000.0,
+      "median_us": 8254.507767,
+      "speedup": 0.9959334538233527,
+      "stddev_us": 674.685885,
+      "variability": 0.08173544735123635,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 8220.94043,
+      "ref_stddev_us": 94.546473,
+      "kernel_tag": "cross3",
+      "gbps": 87.22506784455729,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C3",
+      "arch": "CPU",
+      "dtype": "FP64",
+      "size": 10000000.0,
+      "median_us": 13038.7771,
+      "speedup": 0.630499345678668,
+      "stddev_us": 89.796568,
+      "variability": 0.006886885734092348,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 8220.94043,
+      "ref_stddev_us": 94.546473,
+      "kernel_tag": "crossSoA",
+      "gbps": 55.21990248610048,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C4",
+      "arch": "CPU",
+      "dtype": "FP64",
+      "size": 10000000.0,
+      "median_us": 8336.052533,
+      "speedup": 0.9861910535539089,
+      "stddev_us": 160.589606,
+      "variability": 0.01926446664824539,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 8220.94043,
+      "ref_stddev_us": 94.546473,
+      "kernel_tag": "cross4",
+      "gbps": 86.37181653423248,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "baseline",
+      "arch": "CPU",
+      "dtype": "FP64",
+      "size": 10000000.0,
+      "median_us": 8416.0686,
+      "speedup": 0.9768148075694155,
+      "stddev_us": 179.792395,
+      "variability": 0.02136299067239067,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 8220.94043,
+      "ref_stddev_us": 94.546473,
+      "kernel_tag": "cross3",
+      "gbps": 85.55063346323008,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C2",
+      "arch": "CPU",
+      "dtype": "FP64",
+      "size": 10000003.0,
+      "median_us": 8292.3958,
+      "speedup": 1.0110927000131857,
+      "stddev_us": 25.579325,
+      "variability": 0.0030846724658270654,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 8384.380859,
+      "ref_stddev_us": 381.230288,
+      "kernel_tag": "cross3",
+      "gbps": 86.82656175191252,
+      "regression": false,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C3",
+      "arch": "CPU",
+      "dtype": "FP64",
+      "size": 10000003.0,
+      "median_us": 12974.71362,
+      "speedup": 0.6462093194932499,
+      "stddev_us": 1058.022473,
+      "variability": 0.08154495767591362,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 8384.380859,
+      "ref_stddev_us": 381.230288,
+      "kernel_tag": "crossSoA",
+      "gbps": 55.49257094123053,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C4",
+      "arch": "CPU",
+      "dtype": "FP64",
+      "size": 10000003.0,
+      "median_us": 8424.1404,
+      "speedup": 0.9952802850959133,
+      "stddev_us": 844.958046,
+      "variability": 0.10030198998107866,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 8384.380859,
+      "ref_stddev_us": 381.230288,
+      "kernel_tag": "cross4",
+      "gbps": 85.46868663300056,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "baseline",
+      "arch": "CPU",
+      "dtype": "FP64",
+      "size": 10000003.0,
+      "median_us": 8262.00895,
+      "speedup": 1.014811398745822,
+      "stddev_us": 43.19716,
+      "variability": 0.005228408763706314,
+      "ref_impl": "ornl-cross-omp-cpu-icpx[cross3]",
+      "ref_median_us": 8384.380859,
+      "ref_stddev_us": 381.230288,
+      "kernel_tag": "cross3",
+      "gbps": 87.14590123991577,
+      "regression": false,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "baseline",
+      "arch": "CPU-gcc",
+      "dtype": "FP32",
+      "size": 100000.0,
+      "median_us": 6029.96661,
+      "speedup": 4.138731069358276,
+      "stddev_us": 117.153145,
+      "variability": 0.019428489837027472,
+      "ref_impl": "ornl-cross-omp-cpu-gcc[cross3]",
+      "ref_median_us": 24956.410156,
+      "ref_stddev_us": 1116.214745,
+      "kernel_tag": "cross3",
+      "gbps": 0.5970182312502059,
+      "regression": false,
+      "overhead_dominated": true
+    },
+    {
+      "candidate": "baseline",
+      "arch": "CPU-gcc",
+      "dtype": "FP32",
+      "size": 1000000.0,
+      "median_us": 89.78236,
+      "speedup": 299.28326034200927,
+      "stddev_us": 3265.280573,
+      "variability": 36.36884320037923,
+      "ref_impl": "ornl-cross-omp-cpu-gcc[cross3]",
+      "ref_median_us": 26870.357422,
+      "ref_stddev_us": 1381.141072,
+      "kernel_tag": "cross3",
+      "gbps": 400.969633678598,
+      "regression": false,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "baseline",
+      "arch": "CPU-gcc",
+      "dtype": "FP32",
+      "size": 10000000.0,
+      "median_us": 9069.233633,
+      "speedup": 3.6695363862835446,
+      "stddev_us": 2678.478918,
+      "variability": 0.29533685274727994,
+      "ref_impl": "ornl-cross-omp-cpu-gcc[cross3]",
+      "ref_median_us": 33279.882812,
+      "ref_stddev_us": 558.869613,
+      "kernel_tag": "cross3",
+      "gbps": 39.69464395426718,
+      "regression": false,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "baseline",
+      "arch": "CPU-gcc",
+      "dtype": "FP32",
+      "size": 10000003.0,
+      "median_us": 9021.10099,
+      "speedup": 3.6345073454276893,
+      "stddev_us": 1936.029672,
+      "variability": 0.21461124026281406,
+      "ref_impl": "ornl-cross-omp-cpu-gcc[cross3]",
+      "ref_median_us": 32787.257812,
+      "ref_stddev_us": 4224.152333,
+      "kernel_tag": "cross3",
+      "gbps": 39.90644915726633,
+      "regression": false,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "baseline",
+      "arch": "CPU-gcc",
+      "dtype": "FP64",
+      "size": 100000.0,
+      "median_us": 6070.02536,
+      "speedup": 4.157171225722853,
+      "stddev_us": 562.261307,
+      "variability": 0.09262915287062326,
+      "ref_impl": "ornl-cross-omp-cpu-gcc[cross3]",
+      "ref_median_us": 25234.134766,
+      "ref_stddev_us": 1082.075515,
+      "kernel_tag": "cross3",
+      "gbps": 1.186156494080941,
+      "regression": false,
+      "overhead_dominated": true
+    },
+    {
+      "candidate": "baseline",
+      "arch": "CPU-gcc",
+      "dtype": "FP64",
+      "size": 1000000.0,
+      "median_us": 121.54817,
+      "speedup": 240.84064971113924,
+      "stddev_us": 2642.058903,
+      "variability": 21.736723004550377,
+      "ref_impl": "ornl-cross-omp-cpu-gcc[cross3]",
+      "ref_median_us": 29273.740234,
+      "ref_stddev_us": 746.023044,
+      "kernel_tag": "cross3",
+      "gbps": 592.3577459043605,
+      "regression": false,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "baseline",
+      "arch": "CPU-gcc",
+      "dtype": "FP64",
+      "size": 10000000.0,
+      "median_us": 12245.2003,
+      "speedup": 3.0082465887471024,
+      "stddev_us": 2014.109339,
+      "variability": 0.16448153477734456,
+      "ref_impl": "ornl-cross-omp-cpu-gcc[cross3]",
+      "ref_median_us": 36836.582031,
+      "ref_stddev_us": 1535.904157,
+      "kernel_tag": "cross3",
+      "gbps": 58.79854819524675,
+      "regression": false,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "baseline",
+      "arch": "CPU-gcc",
+      "dtype": "FP64",
+      "size": 10000003.0,
+      "median_us": 12209.76968,
+      "speedup": 3.2923308641805606,
+      "stddev_us": 97.201395,
+      "variability": 0.007960952380553013,
+      "ref_impl": "ornl-cross-omp-cpu-gcc[cross3]",
+      "ref_median_us": 40198.601562,
+      "ref_stddev_us": 4466.607827,
+      "kernel_tag": "cross3",
+      "gbps": 58.969189007666856,
+      "regression": false,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C2",
+      "arch": "Intel-GPU",
+      "dtype": "FP32",
+      "size": 100000.0,
+      "median_us": 113.65073,
+      "speedup": 0.24138067568945665,
+      "stddev_us": 3.976091,
+      "variability": 0.03498517783387753,
+      "ref_impl": "ornl-cross-sycl-fp32[cross3]",
+      "ref_median_us": 27.43309,
+      "ref_stddev_us": 0.870849,
+      "kernel_tag": "cross3",
+      "gbps": 31.675995393958317,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C3",
+      "arch": "Intel-GPU",
+      "dtype": "FP32",
+      "size": 100000.0,
+      "median_us": 69.76409,
+      "speedup": 0.3932265152458808,
+      "stddev_us": 3.381007,
+      "variability": 0.04846342867799179,
+      "ref_impl": "ornl-cross-sycl-fp32[cross3]",
+      "ref_median_us": 27.43309,
+      "ref_stddev_us": 0.870849,
+      "kernel_tag": "crossSoA",
+      "gbps": 51.60247915510688,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C4",
+      "arch": "Intel-GPU",
+      "dtype": "FP32",
+      "size": 100000.0,
+      "median_us": 374.30644,
+      "speedup": 0.07329045687805959,
+      "stddev_us": 26.327716,
+      "variability": 0.07033733109160505,
+      "ref_impl": "ornl-cross-sycl-fp32[cross3]",
+      "ref_median_us": 27.43309,
+      "ref_stddev_us": 0.870849,
+      "kernel_tag": "cross4",
+      "gbps": 9.617788034851872,
+      "regression": true,
+      "overhead_dominated": true
+    },
+    {
+      "candidate": "baseline",
+      "arch": "Intel-GPU",
+      "dtype": "FP32",
+      "size": 100000.0,
+      "median_us": 38.38469,
+      "speedup": 0.7146883301649695,
+      "stddev_us": 7.139195,
+      "variability": 0.1859906905591787,
+      "ref_impl": "ornl-cross-sycl-fp32[cross3]",
+      "ref_median_us": 27.43309,
+      "ref_stddev_us": 0.870849,
+      "kernel_tag": "cross3",
+      "gbps": 93.78739283813417,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C2",
+      "arch": "Intel-GPU",
+      "dtype": "FP32",
+      "size": 1000000.0,
+      "median_us": 266.94229,
+      "speedup": 0.5184841038113519,
+      "stddev_us": 18.69386,
+      "variability": 0.0700295932877477,
+      "ref_impl": "ornl-cross-sycl-fp32[cross3]",
+      "ref_median_us": 138.405334,
+      "ref_stddev_us": 5.893085,
+      "kernel_tag": "cross3",
+      "gbps": 134.86060975951017,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C3",
+      "arch": "Intel-GPU",
+      "dtype": "FP32",
+      "size": 1000000.0,
+      "median_us": 180.38183,
+      "speedup": 0.7672908851185288,
+      "stddev_us": 6.174614,
+      "variability": 0.03423079807982877,
+      "ref_impl": "ornl-cross-sycl-fp32[cross3]",
+      "ref_median_us": 138.405334,
+      "ref_stddev_us": 5.893085,
+      "kernel_tag": "crossSoA",
+      "gbps": 199.57664250329424,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C4",
+      "arch": "Intel-GPU",
+      "dtype": "FP32",
+      "size": 1000000.0,
+      "median_us": 585.71524,
+      "speedup": 0.2363014047577113,
+      "stddev_us": 1.088154,
+      "variability": 0.0018578208755503786,
+      "ref_impl": "ornl-cross-sycl-fp32[cross3]",
+      "ref_median_us": 138.405334,
+      "ref_stddev_us": 5.893085,
+      "kernel_tag": "cross4",
+      "gbps": 61.46331449391687,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "baseline",
+      "arch": "Intel-GPU",
+      "dtype": "FP32",
+      "size": 1000000.0,
+      "median_us": 97.67447,
+      "speedup": 1.41700624533719,
+      "stddev_us": 0.997226,
+      "variability": 0.01020968938966344,
+      "ref_impl": "ornl-cross-sycl-fp32[cross3]",
+      "ref_median_us": 138.405334,
+      "ref_stddev_us": 5.893085,
+      "kernel_tag": "cross3",
+      "gbps": 368.57123463275514,
+      "regression": false,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C2",
+      "arch": "Intel-GPU",
+      "dtype": "FP32",
+      "size": 10000000.0,
+      "median_us": 1308.932533,
+      "speedup": 0.628468452162767,
+      "stddev_us": 63.443594,
+      "variability": 0.048469720478710114,
+      "ref_impl": "ornl-cross-sycl-fp32[cross3]",
+      "ref_median_us": 822.622803,
+      "ref_stddev_us": 0.586289,
+      "kernel_tag": "cross3",
+      "gbps": 275.03327400297724,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C3",
+      "arch": "Intel-GPU",
+      "dtype": "FP32",
+      "size": 10000000.0,
+      "median_us": 1507.503867,
+      "speedup": 0.5456853683812143,
+      "stddev_us": 4.381573,
+      "variability": 0.0029065086305347437,
+      "ref_impl": "ornl-cross-sycl-fp32[cross3]",
+      "ref_median_us": 822.622803,
+      "ref_stddev_us": 0.586289,
+      "kernel_tag": "crossSoA",
+      "gbps": 238.80535757192857,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C4",
+      "arch": "Intel-GPU",
+      "dtype": "FP32",
+      "size": 10000000.0,
+      "median_us": 6617.034067,
+      "speedup": 0.12431896143659374,
+      "stddev_us": 4.634504,
+      "variability": 0.0007003899259205673,
+      "ref_impl": "ornl-cross-sycl-fp32[cross3]",
+      "ref_median_us": 822.622803,
+      "ref_stddev_us": 0.586289,
+      "kernel_tag": "cross4",
+      "gbps": 54.40503953204146,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "baseline",
+      "arch": "Intel-GPU",
+      "dtype": "FP32",
+      "size": 10000000.0,
+      "median_us": 894.431433,
+      "speedup": 0.9197158917378969,
+      "stddev_us": 0.416828,
+      "variability": 0.0004660256612426097,
+      "ref_impl": "ornl-cross-sycl-fp32[cross3]",
+      "ref_median_us": 822.622803,
+      "ref_stddev_us": 0.586289,
+      "kernel_tag": "cross3",
+      "gbps": 402.49032705897764,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C2",
+      "arch": "Intel-GPU",
+      "dtype": "FP32",
+      "size": 10000003.0,
+      "median_us": 1131.80808,
+      "speedup": 0.7226917517676671,
+      "stddev_us": 9.88283,
+      "variability": 0.0087318956054811,
+      "ref_impl": "ornl-cross-sycl-fp32[cross3]",
+      "ref_median_us": 817.948364,
+      "ref_stddev_us": 0.310076,
+      "kernel_tag": "cross3",
+      "gbps": 318.0752234954888,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C3",
+      "arch": "Intel-GPU",
+      "dtype": "FP32",
+      "size": 10000003.0,
+      "median_us": 1474.66351,
+      "speedup": 0.5546677994358183,
+      "stddev_us": 0.426987,
+      "variability": 0.000289548766280926,
+      "ref_impl": "ornl-cross-sycl-fp32[cross3]",
+      "ref_median_us": 817.948364,
+      "ref_stddev_us": 0.310076,
+      "kernel_tag": "crossSoA",
+      "gbps": 244.1235614489437,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "C4",
+      "arch": "Intel-GPU",
+      "dtype": "FP32",
+      "size": 10000003.0,
+      "median_us": 6607.75048,
+      "speedup": 0.12378620628544074,
+      "stddev_us": 2.551314,
+      "variability": 0.00038610931325602966,
+      "ref_impl": "ornl-cross-sycl-fp32[cross3]",
+      "ref_median_us": 817.948364,
+      "ref_stddev_us": 0.310076,
+      "kernel_tag": "cross4",
+      "gbps": 54.481492467009744,
+      "regression": true,
+      "overhead_dominated": false
+    },
+    {
+      "candidate": "baseline",
+      "arch": "Intel-GPU",
+      "dtype": "FP32",
+      "size": 10000003.0,
+      "median_us": 893.377,
+      "speedup": 0.9155690867349394,
+      "stddev_us": 0.506036,
+      "variability": 0.0005664305214931659,
+      "ref_impl": "ornl-cross-sycl-fp32[cross3]",
+      "ref_median_us": 817.948364,
+      "ref_stddev_us": 0.310076,
+      "kernel_tag": "cross3",
+      "gbps": 402.96549832825343,
+      "regression": true,
+      "overhead_dominated": false
+    }
+  ],
+  "ranking_primary": [
+    {
+      "candidate": "baseline",
+      "n_cases": 20,
+      "geomean_speedup": 0.886372521964575,
+      "worst_speedup": 0.26695673894261074,
+      "worst_case": {
+        "arch": "CPU",
+        "dtype": "FP64",
+        "size": 100000.0
+      },
+      "n_regressions": 14
+    },
+    {
+      "candidate": "C2",
+      "n_cases": 20,
+      "geomean_speedup": 0.7338903303531427,
+      "worst_speedup": 0.24138067568945665,
+      "worst_case": {
+        "arch": "Intel-GPU",
+        "dtype": "FP32",
+        "size": 100000.0
+      },
+      "n_regressions": 17
+    },
+    {
+      "candidate": "C3",
+      "n_cases": 20,
+      "geomean_speedup": 0.475859839592724,
+      "worst_speedup": 0.06835355201760519,
+      "worst_case": {
+        "arch": "CPU",
+        "dtype": "FP64",
+        "size": 100000.0
+      },
+      "n_regressions": 20
+    },
+    {
+      "candidate": "C4",
+      "n_cases": 20,
+      "geomean_speedup": 0.3359807774201272,
+      "worst_speedup": 0.04347259168896056,
+      "worst_case": {
+        "arch": "CPU",
+        "dtype": "FP32",
+        "size": 100000.0
+      },
+      "n_regressions": 20
+    }
+  ],
+  "ranking_all_archs": [
+    {
+      "candidate": "baseline",
+      "n_cases": 28,
+      "geomean_speedup": 1.8028215403796288,
+      "worst_speedup": 0.26695673894261074,
+      "worst_case": {
+        "arch": "CPU",
+        "dtype": "FP64",
+        "size": 100000.0
+      },
+      "n_regressions": 14
+    },
+    {
+      "candidate": "C2",
+      "n_cases": 20,
+      "geomean_speedup": 0.7338903303531427,
+      "worst_speedup": 0.24138067568945665,
+      "worst_case": {
+        "arch": "Intel-GPU",
+        "dtype": "FP32",
+        "size": 100000.0
+      },
+      "n_regressions": 17
+    },
+    {
+      "candidate": "C3",
+      "n_cases": 20,
+      "geomean_speedup": 0.475859839592724,
+      "worst_speedup": 0.06835355201760519,
+      "worst_case": {
+        "arch": "CPU",
+        "dtype": "FP64",
+        "size": 100000.0
+      },
+      "n_regressions": 20
+    },
+    {
+      "candidate": "C4",
+      "n_cases": 20,
+      "geomean_speedup": 0.3359807774201272,
+      "worst_speedup": 0.04347259168896056,
+      "worst_case": {
+        "arch": "CPU",
+        "dtype": "FP32",
+        "size": 100000.0
+      },
+      "n_regressions": 20
+    }
+  ],
+  "ranking_primary_overhead_excluded": [
+    {
+      "candidate": "baseline",
+      "n_cases": 18,
+      "geomean_speedup": 0.9625160210248279,
+      "worst_speedup": 0.7146883301649695,
+      "worst_case": {
+        "arch": "Intel-GPU",
+        "dtype": "FP32",
+        "size": 100000.0
+      },
+      "n_regressions": 12
+    },
+    {
+      "candidate": "C2",
+      "n_cases": 19,
+      "geomean_speedup": 0.7685466956603291,
+      "worst_speedup": 0.24138067568945665,
+      "worst_case": {
+        "arch": "Intel-GPU",
+        "dtype": "FP32",
+        "size": 100000.0
+      },
+      "n_regressions": 16
+    },
+    {
+      "candidate": "C3",
+      "n_cases": 17,
+      "geomean_speedup": 0.5563999254099026,
+      "worst_speedup": 0.3779145704694588,
+      "worst_case": {
+        "arch": "AMD-GPU",
+        "dtype": "FP64",
+        "size": 100000.0
+      },
+      "n_regressions": 17
+    },
+    {
+      "candidate": "C4",
+      "n_cases": 17,
+      "geomean_speedup": 0.44401682122417274,
+      "worst_speedup": 0.1125631759399835,
+      "worst_case": {
+        "arch": "CPU",
+        "dtype": "FP32",
+        "size": 1000000.0
+      },
+      "n_regressions": 17
+    }
+  ],
+  "candidate_vs_candidate": {
+    "baseline|baseline": {
+      "n_cells": 18,
+      "geomean": 1.0
+    },
+    "baseline|C2": {
+      "n_cells": 18,
+      "geomean": 0.8078689801314006
+    },
+    "baseline|C3": {
+      "n_cells": 17,
+      "geomean": 0.5690117891514398
+    },
+    "baseline|C4": {
+      "n_cells": 16,
+      "geomean": 0.455795834216915
+    },
+    "C2|baseline": {
+      "n_cells": 18,
+      "geomean": 1.2378244797038118
+    },
+    "C2|C2": {
+      "n_cells": 19,
+      "geomean": 1.0
+    },
+    "C2|C3": {
+      "n_cells": 17,
+      "geomean": 0.7239563016477122
+    },
+    "C2|C4": {
+      "n_cells": 17,
+      "geomean": 0.5464063751585699
+    },
+    "C3|baseline": {
+      "n_cells": 17,
+      "geomean": 1.7574328319124768
+    },
+    "C3|C2": {
+      "n_cells": 17,
+      "geomean": 1.3812988404466087
+    },
+    "C3|C3": {
+      "n_cells": 17,
+      "geomean": 1.0
+    },
+    "C3|C4": {
+      "n_cells": 16,
+      "geomean": 0.7993498348580169
+    },
+    "C4|baseline": {
+      "n_cells": 16,
+      "geomean": 2.193964764329321
+    },
+    "C4|C2": {
+      "n_cells": 17,
+      "geomean": 1.8301397008953177
+    },
+    "C4|C3": {
+      "n_cells": 16,
+      "geomean": 1.2510167093205482
+    },
+    "C4|C4": {
+      "n_cells": 17,
+      "geomean": 1.0
+    }
+  },
+  "candidate_vs_candidate_per_arch": {
+    "CPU": {
+      "baseline|baseline": {
+        "n_cells": 7,
+        "geomean": 1.0
+      },
+      "baseline|C2": {
+        "n_cells": 7,
+        "geomean": 1.0369475723177795
+      },
+      "baseline|C3": {
+        "n_cells": 6,
+        "geomean": 0.6030606222321003
+      },
+      "baseline|C4": {
+        "n_cells": 6,
+        "geomean": 0.5457315002271438
+      },
+      "C2|baseline": {
+        "n_cells": 7,
+        "geomean": 0.9643689099582976
+      },
+      "C2|C2": {
+        "n_cells": 7,
+        "geomean": 1.0
+      },
+      "C2|C3": {
+        "n_cells": 6,
+        "geomean": 0.6030346320747318
+      },
+      "C2|C4": {
+        "n_cells": 6,
+        "geomean": 0.5457079807880543
+      },
+      "C3|baseline": {
+        "n_cells": 6,
+        "geomean": 1.6582080857786954
+      },
+      "C3|C2": {
+        "n_cells": 6,
+        "geomean": 1.6582795528003336
+      },
+      "C3|C3": {
+        "n_cells": 6,
+        "geomean": 1.0
+      },
+      "C3|C4": {
+        "n_cells": 6,
+        "geomean": 0.9049363863407877
+      },
+      "C4|baseline": {
+        "n_cells": 6,
+        "geomean": 1.832402929982567
+      },
+      "C4|C2": {
+        "n_cells": 6,
+        "geomean": 1.8324819046184828
+      },
+      "C4|C3": {
+        "n_cells": 6,
+        "geomean": 1.1050500511352106
+      },
+      "C4|C4": {
+        "n_cells": 6,
+        "geomean": 1.0
+      }
+    },
+    "AMD-GPU": {
+      "baseline|baseline": {
+        "n_cells": 7,
+        "geomean": 1.0
+      },
+      "baseline|C2": {
+        "n_cells": 7,
+        "geomean": 0.8203509878697007
+      },
+      "baseline|C3": {
+        "n_cells": 7,
+        "geomean": 0.5397148967726974
+      },
+      "baseline|C4": {
+        "n_cells": 7,
+        "geomean": 0.6381568687271101
+      },
+      "C2|baseline": {
+        "n_cells": 7,
+        "geomean": 1.2189904257893494
+      },
+      "C2|C2": {
+        "n_cells": 8,
+        "geomean": 1.0
+      },
+      "C2|C3": {
+        "n_cells": 7,
+        "geomean": 0.6579072918218052
+      },
+      "C2|C4": {
+        "n_cells": 8,
+        "geomean": 0.7343663498357582
+      },
+      "C3|baseline": {
+        "n_cells": 7,
+        "geomean": 1.852830088588704
+      },
+      "C3|C2": {
+        "n_cells": 7,
+        "geomean": 1.5199709935284482
+      },
+      "C3|C3": {
+        "n_cells": 7,
+        "geomean": 1.0
+      },
+      "C3|C4": {
+        "n_cells": 7,
+        "geomean": 1.1823962476171412
+      },
+      "C4|baseline": {
+        "n_cells": 7,
+        "geomean": 1.5670128286711618
+      },
+      "C4|C2": {
+        "n_cells": 8,
+        "geomean": 1.3617181672657674
+      },
+      "C4|C3": {
+        "n_cells": 7,
+        "geomean": 0.8457401670677486
+      },
+      "C4|C4": {
+        "n_cells": 8,
+        "geomean": 1.0
+      }
+    },
+    "Intel-GPU": {
+      "baseline|baseline": {
+        "n_cells": 4,
+        "geomean": 1.0
+      },
+      "baseline|C2": {
+        "n_cells": 4,
+        "geomean": 0.5081130094369763
+      },
+      "baseline|C3": {
+        "n_cells": 4,
+        "geomean": 0.5720529210987846
+      },
+      "baseline|C4": {
+        "n_cells": 3,
+        "geomean": 0.14498390227832553
+      },
+      "C2|baseline": {
+        "n_cells": 4,
+        "geomean": 1.968066121959892
+      },
+      "C2|C2": {
+        "n_cells": 4,
+        "geomean": 1.0
+      },
+      "C2|C3": {
+        "n_cells": 4,
+        "geomean": 1.125837973982713
+      },
+      "C2|C4": {
+        "n_cells": 3,
+        "geomean": 0.2490202327547885
+      },
+      "C3|baseline": {
+        "n_cells": 4,
+        "geomean": 1.7480900160062565
+      },
+      "C3|C2": {
+        "n_cells": 4,
+        "geomean": 0.8882272787996711
+      },
+      "C3|C3": {
+        "n_cells": 4,
+        "geomean": 1.0
+      },
+      "C3|C4": {
+        "n_cells": 3,
+        "geomean": 0.2501767093810051
+      },
+      "C4|baseline": {
+        "n_cells": 3,
+        "geomean": 6.8973174558393415
+      },
+      "C4|C2": {
+        "n_cells": 3,
+        "geomean": 4.015737954050929
+      },
+      "C4|C3": {
+        "n_cells": 3,
+        "geomean": 3.997174646969459
+      },
+      "C4|C4": {
+        "n_cells": 3,
+        "geomean": 1.0
+      }
+    }
+  },
+  "stability": {
+    "CPU": {
+      "n": 16,
+      "mean_rel_stddev": 0.16393663128231437,
+      "max_rel_stddev": 0.3078310633274726
+    },
+    "AMD-GPU": {
+      "n": 24,
+      "mean_rel_stddev": 0.030538916325764456,
+      "max_rel_stddev": 0.236210626242421
+    },
+    "Intel-GPU": {
+      "n": 12,
+      "mean_rel_stddev": 0.01858881983921652,
+      "max_rel_stddev": 0.06274694471210705
+    }
+  },
+  "winner": "baseline",
+  "failures": [],
+  "missing_reference": [],
+  "warnings": [
+    "campaign2 role filter: kept 116 rows; skipped 232 rows whose tag did not match the impl's measured role tag"
+  ]
+}

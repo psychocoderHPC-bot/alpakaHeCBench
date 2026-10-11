@@ -111,6 +111,14 @@ to a GPU with a lower compute capability. Use
 | --- | --- | --- |
 | `cross` | cuda, hip, omp, sycl | alpaka (single source) |
 
+## Reproducible cross campaign
+
+`src/cross-alpaka/README.md` documents the `cpu-icpx`, `hip` and `sycl` presets and the
+`scripts/` drivers (`build_all.sh`, `run_bench.sh`, `measure.py`,
+`one_binary_per_target.sh`). `src/cross-alpaka/RESULTS.md` holds the corrected campaign2
+measurements, the fairness protocol and the candidate ranking. The final candidate selection
+is pending manager confirmation and is marked as such in that report.
+
 ## Native comparison
 
 Build the native references in a pinned HeCBench checkout (`0a17ee47`):

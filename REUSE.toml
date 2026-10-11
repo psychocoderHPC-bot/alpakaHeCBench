@@ -16,6 +16,24 @@ path = "README.md"
 SPDX-FileCopyrightText = "2026 René Widera"
 SPDX-License-Identifier = "CC0-1.0"
 
+# Reproducible build/measurement scripts (project-owned, ISC).
+[[annotations]]
+path = "scripts/**"
+SPDX-FileCopyrightText = "2026 René Widera"
+SPDX-License-Identifier = "ISC"
+
+# Project-owned CMake helper modules.
+[[annotations]]
+path = "cmake/hip/**"
+SPDX-FileCopyrightText = "2026 René Widera"
+SPDX-License-Identifier = "ISC"
+
+# Campaign result artifacts: derived data, plots and reports (project-owned).
+[[annotations]]
+path = "src/cross-alpaka/results/**"
+SPDX-FileCopyrightText = "2026 René Widera"
+SPDX-License-Identifier = "CC0-1.0"
+
 # Vendored upstream HeCBench tools and benchmark metadata (BSD-3-Clause).
 [[annotations]]
 path = "benchmarks.yaml"
