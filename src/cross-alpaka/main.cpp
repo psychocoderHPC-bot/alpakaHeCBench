@@ -15,6 +15,7 @@
 
 #include <alpaka/alpaka.hpp>
 
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <cstddef>
@@ -25,8 +26,16 @@
 #include <limits>
 #include <optional>
 #include <random>
+#include <stdexcept>
 #include <string>
 #include <vector>
+
+#if defined(__unix__) || defined(__APPLE__)
+#    include <unistd.h>
+#    define CROSS_HAS_SYSCONF 1
+#else
+#    define CROSS_HAS_SYSCONF 0
+#endif
 
 namespace cross
 {
@@ -39,6 +48,59 @@ namespace cross
 
     //! Upper bound on the row count so that `numRows * 3` cannot overflow `int`.
     constexpr int maxNumRows = std::numeric_limits<int>::max() / 3;
+
+    /** Best-effort estimate of the memory a run may use.
+     *
+     * Returns currently available memory when the platform exposes it, otherwise the installed physical
+     * memory. Returns `std::nullopt` when no estimate is available; callers then skip the guard.
+     */
+    inline std::optional<std::size_t> availableMemoryBytes()
+    {
+#if defined(__linux__)
+        if(std::FILE* f = std::fopen("/proc/meminfo", "r"); f != nullptr)
+        {
+            char line[256];
+            std::size_t found = 0;
+            bool have = false;
+            while(std::fgets(line, sizeof(line), f) != nullptr)
+            {
+                unsigned long long kb = 0;
+                if(std::sscanf(line, "MemAvailable: %llu kB", &kb) == 1)
+                {
+                    found = static_cast<std::size_t>(kb) * 1024u;
+                    have = true;
+                    break;
+                }
+            }
+            std::fclose(f);
+            if(have)
+                return found;
+        }
+#endif
+#if CROSS_HAS_SYSCONF
+        long const pages = ::sysconf(_SC_PHYS_PAGES);
+        long const pageSize = ::sysconf(_SC_PAGE_SIZE);
+        if(pages > 0 && pageSize > 0)
+            return static_cast<std::size_t>(pages) * static_cast<std::size_t>(pageSize);
+#endif
+        return std::nullopt;
+    }
+
+    /** Upper bound of the memory one data type needs for a run, in bytes.
+     *
+     * Counts the two input vectors (`2 * sizeof(T)`), the two double-precision reference copies
+     * (`2 * sizeof(double)`), the five host buffers (`5 * sizeof(T)`) and the three accelerator buffers
+     * (`3 * sizeof(T)`). Saturates instead of overflowing.
+     */
+    template<typename T>
+    std::size_t estimatedFootprintBytes(int numRows)
+    {
+        constexpr std::size_t perElement = 10u * sizeof(T) + 2u * sizeof(double);
+        std::size_t const elements = static_cast<std::size_t>(numRows) * 3u;
+        if(elements > std::numeric_limits<std::size_t>::max() / perElement)
+            return std::numeric_limits<std::size_t>::max();
+        return elements * perElement;
+    }
 
     /** Print the native usage string to stdout. */
     inline void printUsage(char const* program)
@@ -403,6 +465,10 @@ namespace cross
 
         auto const frameSpec = makeFrameSpec<T>(device, exec, static_cast<uint32_t>(numRows));
 
+        // All allocations succeeded: emit the data-type header now. Keeping it after the allocations means a
+        // failure in any of them produces no partial header on stdout.
+        printf("=========== Data type is %s ==========\n", std::is_same_v<T, float> ? "FP32" : "FP64");
+
         int result = EXIT_SUCCESS;
 
         // cross1: strided/torch-like, inline reads, runtime stride.
@@ -477,11 +543,14 @@ namespace cross
         return result;
     }
 
-    /** Emit the header and run one dtype pass. Returns EXIT_SUCCESS/EXIT_FAILURE. */
+    /** Run one dtype pass. Returns EXIT_SUCCESS/EXIT_FAILURE.
+     *
+     * The data-type header is emitted from inside `runType` only after every allocation succeeded, so an
+     * allocation failure cannot leave a partial header on stdout.
+     */
     template<typename T>
     int runOneType(auto const& deviceSpec, auto const& exec, int numRows, int repeat, bool extended)
     {
-        printf("=========== Data type is %s ==========\n", std::is_same_v<T, float> ? "FP32" : "FP64");
         return runType<T>(deviceSpec, exec, numRows, repeat, extended);
     }
 
@@ -494,6 +563,33 @@ namespace cross
         DType dtype,
         bool extended)
     {
+        // Reject sizes that cannot fit before writing any stdout, so an over-large request fails cleanly with a
+        // single stderr diagnostic instead of aborting after a partial data-type header.
+        if(auto const budget = availableMemoryBytes())
+        {
+            std::size_t worst = 0;
+            bool has = false;
+            auto const consider = [&](std::size_t bytes)
+            {
+                worst = has ? std::max(worst, bytes) : bytes;
+                has = true;
+            };
+            if(dtype == DType::Float || dtype == DType::Both)
+                consider(estimatedFootprintBytes<float>(numRows));
+            if(dtype == DType::Double || dtype == DType::Both)
+                consider(estimatedFootprintBytes<double>(numRows));
+            if(has && worst > *budget)
+            {
+                fprintf(
+                    stderr,
+                    "Error: requested size cannot be allocated: estimated %.2f GiB exceeds available %.2f "
+                    "GiB.\n",
+                    static_cast<double>(worst) / (1024.0 * 1024.0 * 1024.0),
+                    static_cast<double>(*budget) / (1024.0 * 1024.0 * 1024.0));
+                return EXIT_FAILURE;
+            }
+        }
+
         int result = EXIT_SUCCESS;
         if(dtype == DType::Float || dtype == DType::Both)
             result |= runOneType<float>(deviceSpec, exec, numRows, repeat, extended);
@@ -629,6 +725,26 @@ auto main(int argc, char* argv[]) -> int
 
     std::optional<int> exitCode;
 
+    // Convert any allocation or backend exception into a single stderr diagnostic and a clean nonzero exit,
+    // instead of letting it abort the process.
+    auto guardedRun = [&](auto const& deviceSpec, auto const& executor) -> int
+    {
+        try
+        {
+            return cross::runExample(deviceSpec, executor, opts.numRows, opts.repeat, opts.dtype, opts.extended);
+        }
+        catch(std::exception const& e)
+        {
+            fprintf(stderr, "Error: benchmark execution failed: %s\n", e.what());
+            return EXIT_FAILURE;
+        }
+        catch(...)
+        {
+            fprintf(stderr, "Error: benchmark execution failed.\n");
+            return EXIT_FAILURE;
+        }
+    };
+
     auto attempt = [&](auto const& backend)
     {
         if(exitCode.has_value())
@@ -640,13 +756,7 @@ auto main(int argc, char* argv[]) -> int
         auto devSelector = onHost::makeDeviceSelector(deviceSpec);
         if(!devSelector.isAvailable())
             return;
-        exitCode = cross::runExample(
-            deviceSpec,
-            alpaka::getExecutor(backend),
-            opts.numRows,
-            opts.repeat,
-            opts.dtype,
-            opts.extended);
+        exitCode = guardedRun(deviceSpec, alpaka::getExecutor(backend));
     };
 
     std::apply([&](auto const&... backend) { (attempt(backend), ...); }, backends);
@@ -664,13 +774,7 @@ auto main(int argc, char* argv[]) -> int
             auto devSelector = onHost::makeDeviceSelector(deviceSpec);
             if(!devSelector.isAvailable())
                 return;
-            exitCode = cross::runExample(
-                deviceSpec,
-                alpaka::getExecutor(backend),
-                opts.numRows,
-                opts.repeat,
-                opts.dtype,
-                opts.extended);
+            exitCode = guardedRun(deviceSpec, alpaka::getExecutor(backend));
         };
         std::apply([&](auto const&... backend) { (attemptHost(backend), ...); }, backends);
     }

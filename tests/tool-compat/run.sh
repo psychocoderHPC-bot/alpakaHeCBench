@@ -12,10 +12,14 @@
 # and finally asserts that the cross regex captures exactly six numeric values
 # from the raw benchmark stdout and that their sum is a finite float.
 #
-# The script exits non-zero on any failure. It is meant to be run on a machine
-# with a usable accelerator (hal/A30); the main benchmark arguments are taken
-# from src/scripts/benchmarks/subset.json, so the runtime matches the upstream
-# test configuration.
+# The script exits non-zero on any failure. Step 2 requires a real benchmark run:
+# it fails when `tools/hecbench run` reports no benchmark, skips the binary, or
+# returns without a numeric mean. Step 4 independently parses the binary output
+# and the autohecbench CSV, so a skip cannot slip through even if the tool exits 0.
+#
+# It is meant to be run on a machine with a usable accelerator (hal/A30); the
+# main benchmark arguments are taken from src/scripts/benchmarks/subset.json, so
+# the runtime matches the upstream test configuration.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -29,7 +33,40 @@ echo "== [1/4] build src/cross-alpaka/main =="
 make -C src/cross-alpaka
 
 echo "== [2/4] python3 tools/hecbench run cross --model alpaka =="
-"$PYTHON" tools/hecbench run cross --model alpaka
+HECBENCH_LOG="$WORKDIR/hecbench-run.log"
+"$PYTHON" tools/hecbench run cross --model alpaka | tee "$HECBENCH_LOG"
+# The vendored tool returns 0 even when it skips the binary. Require an explicit
+# numeric result per benchmark line and reject a skip or an empty run.
+"$PYTHON" - "$HECBENCH_LOG" <<'PYGUARD'
+import math
+import re
+import sys
+
+log_path = sys.argv[1]
+with open(log_path) as f:
+    lines = [line.rstrip("\n") for line in f]
+
+if any("No benchmarks to run" in line for line in lines):
+    sys.exit("FAIL: tools/hecbench reported no benchmarks to run")
+
+result_lines = [line for line in lines if re.match(r"^\[\d+/\d+\] ", line)]
+if not result_lines:
+    sys.exit("FAIL: tools/hecbench produced no benchmark result line")
+
+for line in result_lines:
+    m = re.search(r"\.\.\. (.+)$", line)
+    value = m.group(1).strip() if m else ""
+    if value == "skipped":
+        sys.exit(f"FAIL: tools/hecbench skipped the benchmark: {line}")
+    try:
+        number = float(value)
+    except ValueError:
+        sys.exit(f"FAIL: tools/hecbench did not report a numeric result: {line}")
+    if not math.isfinite(number):
+        sys.exit(f"FAIL: tools/hecbench reported a non-finite result: {line}")
+
+print(f"OK: tools/hecbench ran {len(result_lines)} benchmark(s) with finite results")
+PYGUARD
 
 echo "== [3/4] python3 src/scripts/autohecbench.py --repeat 3 cross-alpaka =="
 "$PYTHON" src/scripts/autohecbench.py --yes-prompt \

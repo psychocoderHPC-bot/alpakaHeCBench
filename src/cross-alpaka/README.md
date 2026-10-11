@@ -56,9 +56,12 @@ Extended mode is opt-in and writes its diagnostics to stderr only:
 
 ## Output contract
 
-stdout carries exactly eight lines: two data-type headers, three `Average execution time of
-cross<N> kernel: %f (us)` lines per data type and one `PASS`/`FAIL` line per data type. The process
-exits non-zero when validation fails, when a non-finite output appears or on invalid arguments.
+stdout carries exactly ten lines in the default (`--dtype both`) run: one `=========== Data type is
+FP32/FP64 ==========` header per data type, three `Average execution time of cross<N> kernel: %f
+(us)` lines per data type (6 total) and one `PASS`/`FAIL` line per data type (2 total). A single-data
+type run (`--dtype float` or `--dtype double`) carries five lines. The process exits non-zero when
+validation fails, when a non-finite output appears, when the requested size cannot be allocated or on
+invalid arguments.
 
 `PASS` compares each kernel output against an independent double-precision reference computed from
 the stored inputs. Tolerances: `1e-3 + 1e-4*|ref|` for FP32 and `1e-9` for FP64.
