@@ -98,5 +98,12 @@ cmake --build build/cuda --target cross-alpaka -j
 ./build/cuda/bin/alpaka/cross 10000000 100
 ```
 
-The `make` wrapper configures, builds and copies `bin/alpaka/cross` to `./main` for the HeCBench
-tooling.
+The `make` wrapper configures a `Release` build (`-O3`, `-march=native`), builds the `cross-alpaka`
+target and copies `bin/alpaka/cross` to `./main` for the HeCBench tooling. Override the CUDA
+architecture with `make CUDA_ARCH=<n>` (default `80`) and drop the host SIMD flag with
+`make HOST_CXX_FLAGS=`. The vendored `tools/hecbench` takes `-v` as a **global** option, before the
+subcommand: `python3 tools/hecbench -v run cross --model alpaka`.
+
+Fast math is **OFF** by default because the native HeCBench `cross` references use plain `-O3`
+without fast-math. To match a fast-math reference pass `-DalpakaHeCBench_FAST_MATH=ON` or
+`-Dalpaka_FAST_MATH=ON` at configure time (device-side flags only).

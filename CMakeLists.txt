@@ -18,6 +18,19 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 option(alpakaHeCBench_ENABLE_CUDA "Enable the CUDA backend (onAcc + onHost in one translation unit)" OFF)
 option(alpakaHeCBench_USE_SOURCE_TREE "Use alpaka from extern/alpaka instead of an installed package" ON)
 
+# Fast-math passthrough. The native HeCBench cross references are built with
+# plain -O3 and no fast-math, so the default is OFF to keep the comparison
+# honest. Turning it ON maps to alpaka's own alpaka_FAST_MATH option, which
+# injects device-side flags only (nvcc --use_fast_math; HIP/SYCL -ffast-math).
+# Passing -Dalpaka_FAST_MATH=ON (or OFF) directly also works and is documented
+# in the README.
+option(alpakaHeCBench_FAST_MATH "Enable fast-math in device kernels (maps to alpaka_FAST_MATH; default OFF matches the native references)" OFF)
+if(alpakaHeCBench_FAST_MATH)
+    set(alpaka_FAST_MATH ON CACHE STRING "Enable fast-math in kernels" FORCE)
+elseif(NOT DEFINED alpaka_FAST_MATH)
+    set(alpaka_FAST_MATH OFF CACHE STRING "Enable fast-math in kernels" FORCE)
+endif()
+
 if(alpakaHeCBench_ENABLE_CUDA)
     enable_language(CUDA)
     set(CMAKE_CUDA_ARCHITECTURES 80 CACHE STRING "CUDA architectures to build for")

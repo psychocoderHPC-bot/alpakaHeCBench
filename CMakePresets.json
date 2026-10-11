@@ -19,7 +19,8 @@
         "alpaka_TESTS": "OFF",
         "alpaka_EXAMPLES": "OFF",
         "alpaka_DOCS": "OFF",
-        "alpaka_BENCHMARKS": "OFF"
+        "alpaka_BENCHMARKS": "OFF",
+        "alpakaHeCBench_FAST_MATH": "OFF"
       }
     },
     {
@@ -27,7 +28,8 @@
       "displayName": "CPU with the OpenMP block executor (OMP_NUM_THREADS=64)",
       "inherits": "base",
       "cacheVariables": {
-        "alpaka_DEP_OMP": "ON"
+        "alpaka_DEP_OMP": "ON",
+        "CMAKE_CXX_FLAGS": "-march=native"
       },
       "environment": {
         "OMP_NUM_THREADS": "64"
@@ -38,7 +40,8 @@
       "displayName": "CPU serial executor (no OpenMP)",
       "inherits": "base",
       "cacheVariables": {
-        "alpaka_DEP_OMP": "OFF"
+        "alpaka_DEP_OMP": "OFF",
+        "CMAKE_CXX_FLAGS": "-march=native"
       }
     },
     {

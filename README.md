@@ -28,6 +28,13 @@ verbatim so the upstream harness runs directly against this tree.
 - The port follows the HeCBench `cross` benchmark; its logic is re-derived, not
   vendored. The upstream license text is kept in `src/cross-alpaka/LICENSE`.
 
+## Prerequisites
+
+- CMake >= 3.28.
+- Ninja (used by the CMake presets) or Make.
+- A C++20 compiler (GCC 13, Clang 17 or newer).
+- Optional: an NVIDIA CUDA toolkit for the `cuda` preset.
+
 ## Clone
 
 The repository uses a git submodule for alpaka. Clone recursively:
@@ -54,17 +61,49 @@ cmake --build build/cpu-serial --target cross-alpaka -j
 ./build/cpu-serial/bin/alpaka/cross 4096 2
 ```
 
-`--preset cpu` selects the OpenMP block executor (`OMP_NUM_THREADS=64`).
+`--preset cpu` selects the OpenMP block executor (`OMP_NUM_THREADS=64`). Both CPU
+presets configure a `Release` build (`-O3`) with `-march=native` for host SIMD.
+`-march=native` is a preset default, not a hard dependency: pass
+`-DCMAKE_CXX_FLAGS="-march=x86-64-v3"` (or `-DCMAKE_CXX_FLAGS=`) on the configure
+line to override it.
 
 ## CUDA quick start
 
-Requires the CUDA toolkit. The default target architecture is `sm_80` (A30/A100).
+Requires the CUDA toolkit. The default target architecture is `sm_80` (A30/A100);
+set `-DCMAKE_CUDA_ARCHITECTURES=<n>` to the target GPU (for example `80` for an
+A30, `90` for an H100) when it differs.
 
 ```bash
 cmake --preset cuda -Dalpaka_COMPILE_PEDANTIC=ON .
 cmake --build build/cuda --target cross-alpaka -j
 ./build/cuda/bin/alpaka/cross 10000000 100
 ```
+
+## Fast math
+
+The native HeCBench `cross` references are built with plain `-O3` and no
+fast-math, so the default here is **OFF** to keep the comparison honest. To match
+a fast-math reference, pass either of:
+
+```bash
+-DalpakaHeCBench_FAST_MATH=ON      # this repository's convenience option
+-Dalpaka_FAST_MATH=ON              # alpaka's own option, passed through directly
+```
+
+Either maps to alpaka's `alpaka_FAST_MATH`, which injects device-side flags only
+(nvcc `--use_fast_math`, HIP/SYCL `-ffast-math`). For the CUDA backend
+(`alpakaCuda.cmake`) these are CUDA-language generator expressions, so the host
+C++ code is compiled with `CMAKE_CXX_FLAGS` as usual and never receives
+fast-math. The OpenMP host executor has no fast-math branch.
+
+## Portability caveat
+
+`-march=native` (the CPU preset default) and a hardcoded
+`CMAKE_CUDA_ARCHITECTURES` bake the build machine's instruction set and GPU
+generation into the binary. Such a binary is not portable to a different CPU or
+to a GPU with a lower compute capability. Use
+`-DCMAKE_CXX_FLAGS=-march=x86-64-v3` and an explicit
+`-DCMAKE_CUDA_ARCHITECTURES` list for redistributable builds.
 
 ## Benchmark coverage
 
@@ -91,25 +130,17 @@ averages:
 ./build/cuda/bin/alpaka/cross 10000000 100
 ```
 
-The canonical native CUDA output on an A30 (sm_80) is:
-
-```
-=========== Data type is FP32 ==========
-Average execution time of cross1 kernel: 433.417389 (us)
-Average execution time of cross2 kernel: 430.737000 (us)
-Average execution time of cross3 kernel: 430.518677 (us)
-PASS
-=========== Data type is FP64 ==========
-Average execution time of cross1 kernel: 919.546692 (us)
-Average execution time of cross2 kernel: 887.451172 (us)
-Average execution time of cross3 kernel: 889.599243 (us)
-PASS
-```
-
 The upstream `cross-omp` build targets an Intel offload backend and does not run
-on an NVIDIA-only host; use its host-OpenMP variant as the CPU reference.
+on an NVIDIA-only host; use its host-OpenMP variant as the CPU reference. See
+`results/README.md` for the measured comparison on the A30 validation host.
 
-## Upstream tool compatibility
+## The `make` wrapper and the upstream tools
+
+`make -C src/cross-alpaka` configures a `Release` build (`-O3`, `-march=native`),
+builds the `cross-alpaka` target and copies the binary to `./main`, which is the
+name the HeCBench tooling invokes. The CUDA architecture defaults to `80`; pass
+`make CUDA_ARCH=<n>` (or `ARCH=<n>`) to target another GPU, and
+`make HOST_CXX_FLAGS=` to drop `-march=native`.
 
 The vendored tools recognize the `alpaka` model through a one-token change:
 `"alpaka"` was added to `MODELS` in `tools/hecbench` and
@@ -122,9 +153,14 @@ directly.
 
 ```bash
 make -C src/cross-alpaka
-python3 tools/hecbench run cross --model alpaka
+python3 tools/hecbench -v run cross --model alpaka
 python3 src/scripts/autohecbench.py --yes-prompt -o cross-alpaka.csv --repeat 3 cross-alpaka
 ```
+
+`-v` is a **global** option and must precede the subcommand:
+`python3 tools/hecbench -v run cross --model alpaka`. The form
+`python3 tools/hecbench run cross --model alpaka -v` is rejected by argparse
+(`unrecognized arguments: -v`, exit 2).
 
 Run the regression script that exercises both tools and asserts six numeric
 captures with a finite sum:
