@@ -163,8 +163,15 @@ def main():
                     help="KEY=VALUE, repeatable; added to the child environment")
     args = ap.parse_args()
 
-    if args.single_threaded_scheduler:
-        pass  # serial scheduling is enforced by the flock below
+    # The harness serializes timed processes with a flock on the output CSV, so
+    # it is inherently single-threaded at the scheduling level. '--single-threaded-scheduler'
+    # is the documented default; the negation is rejected instead of silently
+    # pretending to enable concurrency it does not implement.
+    if not args.single_threaded_scheduler:
+        ap.error("--no-single-threaded-scheduler is not supported: serial scheduling "
+                 "is always enforced by the output-CSV flock")
+    if args.reps < 1:
+        ap.error("--reps must be >= 1")
 
     env = dict(os.environ)
     for item in args.env:

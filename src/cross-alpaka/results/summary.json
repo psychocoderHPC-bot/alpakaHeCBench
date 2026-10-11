@@ -1,5 +1,5 @@
 {
-  "source_csv": "/tmp/alpaka-orchestration/cross-opt-20261011/measurements/campaign2.csv",
+  "source_csv": "results/data/campaign2.csv",
   "source_rows": 348,
   "supersedes": "campaign.csv (old: Intel wrong-size harness bug, no warm-up)",
   "kernel_role_routing": {

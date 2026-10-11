@@ -152,13 +152,17 @@ scripts/run_bench.sh build/hip/bin/alpaka/cross baseline-c1-hip cross3
 scripts/run_bench.sh build/sycl/bin/alpaka/cross baseline-c1-sycl cross3 sycl --fp32-only
 ```
 
-The presets read these environment variables, which default to the campaign host layout:
+The presets carry literal defaults that match the campaign host layout, so
+`cmake --preset <name>` works without exporting anything. Override the compiler
+or root on the configure line instead of relying on environment variables
+(CMakePresets expands `$env{}` at configure time, and an unset variable expands
+to an empty string):
 
-| preset | variable | default |
+| preset | default | override |
 | --- | --- | --- |
-| `cpu-icpx`, `sycl` | `ALPAKA_HECBENCH_ICX` | `icpx` on `PATH` |
-| `hip` | `ALPAKA_HECBENCH_ROCM_ROOT` | `/opt/rocm` |
-| `sycl` | `ALPAKA_HECBENCH_ONEAPI_ROOT` | `/opt/intel/oneapi` |
+| `cpu-icpx` | `CMAKE_CXX_COMPILER=icpx` (resolved via `PATH`) | `-DCMAKE_CXX_COMPILER=/abs/path/icpx` |
+| `hip` | `CMAKE_HIP_COMPILER=/opt/rocm/llvm/bin/clang++`, `CMAKE_HIP_COMPILER_ROCM_ROOT=/opt/rocm` | `-DCMAKE_HIP_COMPILER=... -DCMAKE_HIP_COMPILER_ROCM_ROOT=...` |
+| `sycl` | `CMAKE_CXX_COMPILER=icpx`, `CMAKE_PREFIX_PATH=/opt/intel/oneapi` | `-DCMAKE_CXX_COMPILER=/abs/path/icpx -DCMAKE_PREFIX_PATH=/abs/oneapi` |
 
 The `hip` preset passes `-DCMAKE_PROJECT_INCLUDE=cmake/hip/hip_preload.cmake`. CMake 3.28
 leaves the HIP compile rule unset when the alpaka subproject enables the HIP language, and

@@ -1,6 +1,6 @@
 # Campaign2 (corrected) - authoritative summary
 
-Source: `../measurements/campaign2.csv` (348 rows). This supersedes the old `campaign.csv`, which had an Intel wrong-size harness bug and no in-process warm-up. Every number below derives from campaign2.csv.
+Source: `results/data/campaign2.csv` (348 rows). This supersedes the old `campaign.csv`, which had an Intel wrong-size harness bug and no in-process warm-up. Every number below derives from campaign2.csv.
 
 ## Kernel-role routing (explicit)
 
