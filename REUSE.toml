@@ -1,0 +1,17 @@
+version = 1
+
+[[annotations]]
+path = "CMakePresets.json"
+SPDX-FileCopyrightText = "2026 René Widera"
+SPDX-License-Identifier = "ISC"
+
+[[annotations]]
+path = ".gitmodules"
+SPDX-FileCopyrightText = "2026 René Widera"
+SPDX-License-Identifier = "ISC"
+
+[[annotations]]
+path = "extern/alpaka"
+SPDX-FileCopyrightText = "alpaka contributors"
+SPDX-License-Identifier = "MPL-2.0"
+precedence = "override"

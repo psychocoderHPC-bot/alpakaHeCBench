@@ -1,0 +1,69 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 28,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "alpakaHeCBench_USE_SOURCE_TREE": "ON",
+        "alpakaHeCBench_ENABLE_CUDA": "OFF",
+        "alpaka_TESTS": "OFF",
+        "alpaka_EXAMPLES": "OFF",
+        "alpaka_DOCS": "OFF",
+        "alpaka_BENCHMARKS": "OFF"
+      }
+    },
+    {
+      "name": "cpu",
+      "displayName": "CPU with the OpenMP block executor (OMP_NUM_THREADS=64)",
+      "inherits": "base",
+      "cacheVariables": {
+        "alpaka_DEP_OMP": "ON"
+      },
+      "environment": {
+        "OMP_NUM_THREADS": "64"
+      }
+    },
+    {
+      "name": "cpu-serial",
+      "displayName": "CPU serial executor (no OpenMP)",
+      "inherits": "base",
+      "cacheVariables": {
+        "alpaka_DEP_OMP": "OFF"
+      }
+    },
+    {
+      "name": "cuda",
+      "displayName": "CUDA backend (A30 / sm_80)",
+      "inherits": "base",
+      "cacheVariables": {
+        "alpakaHeCBench_ENABLE_CUDA": "ON",
+        "alpaka_DEP_CUDA": "ON",
+        "CMAKE_CUDA_ARCHITECTURES": "80"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "cpu",
+      "configurePreset": "cpu"
+    },
+    {
+      "name": "cpu-serial",
+      "configurePreset": "cpu-serial"
+    },
+    {
+      "name": "cuda",
+      "configurePreset": "cuda"
+    }
+  ]
+}

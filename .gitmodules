@@ -1,0 +1,4 @@
+[submodule "extern/alpaka"]
+	path = extern/alpaka
+	url = https://github.com/alpaka-group/alpaka.git
+	branch = dev_v3.x

@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: 2026 René Widera
+# SPDX-License-Identifier: ISC
+# CMake build trees
+build/
+# make wrapper output
+src/*/main
+src/*/build/
+# object files
+*.o
