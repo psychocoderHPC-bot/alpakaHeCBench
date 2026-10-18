@@ -2747,7 +2747,7 @@ sssp:
 
 stddev:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
+  models: [alpaka, cuda, hip, omp, sycl]
   test:
     regex: '(?:Average execution time of stddev kernels: )([0-9.+-e]+)(?: \(s\))'
     args: ["65536", "16384", "100"]
