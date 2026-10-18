@@ -25,6 +25,11 @@
 
 #include <alpaka/alpaka.hpp>
 
+// alpaka's SYCL backend defines a global printf macro for device printf;
+// the host reporting here uses std::printf. Undefine it so <cstdio> names
+// resolve to the host functions.
+#undef printf
+
 #include <algorithm>
 #include <chrono>
 #include <cmath>
