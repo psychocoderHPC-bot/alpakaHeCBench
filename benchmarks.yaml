@@ -755,7 +755,8 @@ daphne:
 
 dct8x8:
   categories: [math]
-  models: [cuda, hip, omp, sycl]
+  # "alpaka" is the alpakaHeCBench port model (src/dct8x8-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
   test:
     regex: '(?:Average DCT8x8 kernel execution time )([0-9.+-e]+)(?: \(s\))'
     args: ["8192", "8192", "100"]
