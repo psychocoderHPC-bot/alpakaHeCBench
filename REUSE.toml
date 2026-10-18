@@ -16,6 +16,12 @@ path = "README.md"
 SPDX-FileCopyrightText = "2026 René Widera"
 SPDX-License-Identifier = "CC0-1.0"
 
+# Project-owned CMake helper modules.
+[[annotations]]
+path = "cmake/hip/**"
+SPDX-FileCopyrightText = "2026 René Widera"
+SPDX-License-Identifier = "ISC"
+
 # Vendored upstream HeCBench tools and benchmark metadata (BSD-3-Clause).
 [[annotations]]
 path = "benchmarks.yaml"

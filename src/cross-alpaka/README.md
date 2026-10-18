@@ -115,3 +115,38 @@ subcommand: `python3 tools/hecbench -v run cross --model alpaka`.
 Fast math is **OFF** by default because the native HeCBench `cross` references use plain `-O3`
 without fast-math. To match a fast-math reference pass `-DalpakaHeCBench_FAST_MATH=ON` or
 `-Dalpaka_FAST_MATH=ON` at configure time (device-side flags only).
+
+## Additional backend presets
+
+The repository-root `CMakePresets.json` adds three presets that build one binary per target:
+
+```bash
+cmake --preset cpu-icpx
+cmake --build --preset cpu-icpx
+
+cmake --preset hip
+cmake --build --preset hip
+
+cmake --preset sycl
+cmake --build --preset sycl
+```
+
+The presets carry defaults for a typical ROCm or oneAPI install; override the compiler or
+root on the configure line rather than through environment variables:
+
+| preset | default | override |
+| --- | --- | --- |
+| `cpu-icpx` | `CMAKE_CXX_COMPILER=icpx` (resolved via `PATH`) | `-DCMAKE_CXX_COMPILER=/abs/path/icpx` |
+| `hip` | `CMAKE_HIP_COMPILER=/opt/rocm/llvm/bin/clang++`, `CMAKE_HIP_COMPILER_ROCM_ROOT=/opt/rocm` | `-DCMAKE_HIP_COMPILER=... -DCMAKE_HIP_COMPILER_ROCM_ROOT=...` |
+| `sycl` | `CMAKE_CXX_COMPILER=icpx`, `CMAKE_PREFIX_PATH=/opt/intel/oneapi` | `-DCMAKE_CXX_COMPILER=/abs/path/icpx -DCMAKE_PREFIX_PATH=/abs/oneapi` |
+
+The `hip` preset passes `-DCMAKE_PROJECT_INCLUDE=cmake/hip/hip_preload.cmake`. CMake 3.28
+leaves the HIP compile rule unset when the alpaka subproject enables the HIP language, and
+the preload file runs the language check before that point. The preset also pins
+`--offload-arch=gfx1100` and uses `/opt/rocm/llvm/bin/clang++` directly, because the HIP
+wrapper is rejected as `CMAKE_HIP_COMPILER`.
+
+The `sycl` preset sets `-Dalpaka_HOST_Cpu=OFF`. Without it, icpx 2026.1.1 crashes in the SYCL
+device pass on this source. It also enables `-DALPAKA_DISABLE_Host_Cpu`. Pin the device at
+run time with `ONEAPI_DEVICE_SELECTOR=level_zero:gpu` so the binary JITs the GPU and never
+the OpenCL CPU device.

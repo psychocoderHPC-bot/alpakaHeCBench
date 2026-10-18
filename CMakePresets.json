@@ -53,6 +53,55 @@
         "alpaka_DEP_CUDA": "ON",
         "CMAKE_CUDA_ARCHITECTURES": "80"
       }
+    },
+    {
+      "name": "cpu-icpx",
+      "displayName": "CPU host OpenMP built with icpx (-march=native, no fast math)",
+      "description": "CPU/OpenMP host executor compiled with Intel icpx, matching the ORNL cross-omp CPU pairing. The compiler defaults to icpx resolved via PATH; override with -DCMAKE_CXX_COMPILER=/abs/path/icpx.",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "icpx",
+        "CMAKE_CXX_FLAGS": "-march=native",
+        "alpaka_DEP_OMP": "ON",
+        "alpaka_DEP_CUDA": "OFF",
+        "alpaka_DEP_HIP": "OFF",
+        "alpaka_DEP_ONEAPI": "OFF"
+      },
+      "environment": {
+        "OMP_NUM_THREADS": "64"
+      }
+    },
+    {
+      "name": "hip",
+      "displayName": "HIP backend for AMD gfx1100 (CMake 3.28 HIP preload workaround)",
+      "description": "AMD HIP backend. Uses cmake/hip/hip_preload.cmake via CMAKE_PROJECT_INCLUDE because CMake 3.28 leaves the HIP compile rule unset when alpaka enables HIP. Defaults to ROCm in /opt/rocm; override CMAKE_HIP_COMPILER and CMAKE_HIP_COMPILER_ROCM_ROOT on the configure line for another install.",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_PROJECT_INCLUDE": "${sourceDir}/cmake/hip/hip_preload.cmake",
+        "alpaka_DEP_HIP": "ON",
+        "alpaka_DEP_CUDA": "OFF",
+        "alpaka_DEP_ONEAPI": "OFF",
+        "alpaka_DEP_OMP": "OFF",
+        "CMAKE_HIP_ARCHITECTURES": "gfx1100",
+        "CMAKE_HIP_COMPILER": "/opt/rocm/llvm/bin/clang++",
+        "CMAKE_HIP_COMPILER_ROCM_ROOT": "/opt/rocm"
+      }
+    },
+    {
+      "name": "sycl",
+      "displayName": "SYCL/oneAPI backend (spir64, FP32-only device; Intel Arc A770 has no FP64)",
+      "description": "Intel oneAPI SYCL backend for the Arc A770 (SPIR64, FP32-only; the A770 has no fp64 aspect). Defaults to oneAPI in /opt/intel/oneapi; override CMAKE_CXX_COMPILER and CMAKE_PREFIX_PATH on the configure line for another install. alpaka_HOST_Cpu=OFF avoids an icpx 2026.1 Sema crash in the SYCL device pass on this source.",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "icpx",
+        "CMAKE_PREFIX_PATH": "/opt/intel/oneapi",
+        "alpaka_DEP_ONEAPI": "ON",
+        "alpaka_DEP_HIP": "OFF",
+        "alpaka_DEP_CUDA": "OFF",
+        "alpaka_DEP_OMP": "OFF",
+        "alpaka_ONEAPI_Cpu": "OFF",
+        "alpaka_HOST_Cpu": "OFF"
+      }
     }
   ],
   "buildPresets": [
@@ -67,6 +116,21 @@
     {
       "name": "cuda",
       "configurePreset": "cuda"
+    },
+    {
+      "name": "cpu-icpx",
+      "configurePreset": "cpu-icpx",
+      "targets": ["cross-alpaka"]
+    },
+    {
+      "name": "hip",
+      "configurePreset": "hip",
+      "targets": ["cross-alpaka"]
+    },
+    {
+      "name": "sycl",
+      "configurePreset": "sycl",
+      "targets": ["cross-alpaka"]
     }
   ]
 }

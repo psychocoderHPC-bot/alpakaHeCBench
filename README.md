@@ -122,7 +122,7 @@ make -C src/cross-cuda ARCH=sm_80          # CUDA
 make -C src/cross-omp -f Makefile          # official ICPX offload build
 ```
 
-Then compare the outputs. The recorded value is the sum of the six kernel
+Then compare the outputs. The comparison value is the sum of the six kernel
 averages:
 
 ```bash
@@ -131,15 +131,8 @@ averages:
 ```
 
 The upstream `cross-omp` build targets an Intel offload backend and does not run
-on an NVIDIA-only host; use its host-OpenMP variant as the CPU reference.
-
-Recorded ratios use `alpaka / native`; a value below 1.0 means alpaka is faster.
-The comparison reported here was produced on the A30 validation host (NVIDIA A30,
-sm_80, CUDA 13.4, g++ 13.3.0, AMD EPYC 7452). Each timed value is the mean over
-the `repeat` loop, matched to the native timing scope (no warm-up, a single
-synchronization at the end). The host-OpenMP build is a substitute for the
-prescribed Intel offload reference and is therefore reported separately, not
-folded into the ratio.
+on an NVIDIA-only host. Use its host-OpenMP variant as the CPU reference and
+keep its numbers separate from the CUDA ratio.
 
 ## The `make` wrapper and the upstream tools
 
@@ -161,7 +154,6 @@ directly.
 ```bash
 make -C src/cross-alpaka
 python3 tools/hecbench -v run cross --model alpaka
-python3 src/scripts/autohecbench.py --yes-prompt -o cross-alpaka.csv --repeat 3 cross-alpaka
 ```
 
 `-v` is a **global** option and must precede the subcommand:
