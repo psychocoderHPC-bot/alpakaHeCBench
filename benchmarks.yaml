@@ -1801,8 +1801,12 @@ medianfilter:
 
 memcpy:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
-  # No test metadata available
+  # "alpaka" is the alpakaHeCBench port model (src/memcpy-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
+  test:
+    regex: 'Memcpy verification PASSED'
+    args: ["--sizes", "64,1000,65536", "--repeat", "4", "--samples", "2"]
+    timeout: 300
 
 memtest:
   categories: [algorithms]
