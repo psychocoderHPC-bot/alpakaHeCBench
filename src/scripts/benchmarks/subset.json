@@ -1001,6 +1001,25 @@
             "1000"
         ]
     ],
+    "resize": [
+        "(?:RESULT .*median_us=)([0-9.+-e]+)",
+        [
+            "--in-width",
+            "257",
+            "--in-height",
+            "129",
+            "--out-width",
+            "65",
+            "--out-height",
+            "33",
+            "--channels",
+            "8",
+            "--repeat",
+            "4",
+            "--samples",
+            "2"
+        ]
+    ],
     "rsc": [
         "(?:Total task execution time for [0-9.+-e]+ iterations: )([0-9.+-e]+)(?: \\((?:s|ms|us)\\))",
         [
