@@ -2226,8 +2226,12 @@ pool:
 
 popcount:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
-  # No test metadata available
+  # "alpaka" is the alpakaHeCBench port model (src/popcount-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
+  test:
+    regex: '(?:Popcount kernel runtime median: )([0-9.+-e]+)(?: us)'
+    args: ["4096", "2"]
+    timeout: 300
 
 prefetch:
   categories: [algorithms]

@@ -995,6 +995,13 @@
             "100"
         ]
     ],
+    "popcount": [
+        "(?:Popcount kernel runtime median: )([0-9.+-e]+)(?: us)",
+        [
+            "4096",
+            "2"
+        ]
+    ],
     "projectile": [
         "(?:Average kernel execution time: )([0-9.+-e]+)(?: \\(s\\))",
         [
