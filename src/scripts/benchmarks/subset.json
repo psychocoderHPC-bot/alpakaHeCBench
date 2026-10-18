@@ -38,6 +38,19 @@
             "100"
         ]
     ],
+    "affine": [
+        "(?:RESULT backend=\\S+ size=\\d+x\\d+ median_us=)([0-9.+-e]+)",
+        [
+            "--width",
+            "127",
+            "--height",
+            "129",
+            "--repeat",
+            "4",
+            "--samples",
+            "2"
+        ]
+    ],
     "aidw": [
         "(?:Average execution time of AIDW_Kernel_Tiled )([0-9.+-e]+)(?: \\(s\\))",
         [
