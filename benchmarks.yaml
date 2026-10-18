@@ -5,7 +5,7 @@
 #
 # Vendored from ORNL/HeCBench at
 # 0a17ee47ca6072192101036d4bf292e6612f22e6 (benchmarks.yaml).
-# The only change adds the "alpaka" model to cross.models.
+# The only changes add the "alpaka" model to cross.models and ising.models.
 # HeCBench Benchmark Metadata
 #
 # Auto-generated from subset.json and CMakeLists.txt files
@@ -1404,7 +1404,8 @@ is:
 
 ising:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
+  # "alpaka" is the alpakaHeCBench port model (src/ising-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
   test:
     regex: '(?:elapsed time: )([0-9.+-e]+)(?: sec)'
     args: []
