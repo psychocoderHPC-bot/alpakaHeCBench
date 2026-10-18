@@ -1026,6 +1026,21 @@
             "0.1"
         ]
     ],
+    "scan": [
+        "scan verification PASSED",
+        [
+            "--n",
+            "100000",
+            "--chunk",
+            "0",
+            "--repeat",
+            "2",
+            "--samples",
+            "2",
+            "--type",
+            "int"
+        ]
+    ],
     "softmax": [
         "(?:Average kernel execution time: )([0-9.+-e]+)(?: \\(ms\\))",
         [

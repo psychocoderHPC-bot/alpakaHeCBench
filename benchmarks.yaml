@@ -2478,8 +2478,12 @@ sc:
 
 scan:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
-  # No test metadata available
+  # "alpaka" is the alpakaHeCBench port model (src/scan-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
+  test:
+    regex: 'scan verification PASSED'
+    args: ["--n", "100000", "--chunk", "0", "--repeat", "2", "--samples", "2", "--type", "int"]
+    timeout: 300
 
 scan2:
   categories: [algorithms]
