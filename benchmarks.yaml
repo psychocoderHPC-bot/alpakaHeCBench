@@ -2349,7 +2349,8 @@ remap:
 
 resize:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
+  # "alpaka" is the alpakaHeCBench port model (src/resize-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
   # No test metadata available
 
 resnet-kernels:
