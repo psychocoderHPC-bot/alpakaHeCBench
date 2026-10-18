@@ -859,6 +859,23 @@
             "2"
         ]
     ],
+    "morphology": [
+        "(?:median_us=)([0-9.+-e]+)",
+        [
+            "--width",
+            "129",
+            "--height",
+            "127",
+            "--hsize",
+            "5",
+            "--vsize",
+            "5",
+            "--repeat",
+            "2",
+            "--samples",
+            "2"
+        ]
+    ],
     "mr": [
         "(?:Total kernel execution time \\(\\w+\\s*\\): )([0-9.+-e]+)(?: \\(ms\\))"
     ],
