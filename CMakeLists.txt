@@ -55,3 +55,4 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 include(BenchmarkMacros)
 
 add_subdirectory(src/cross-alpaka)
+add_subdirectory(src/reverse-alpaka)
