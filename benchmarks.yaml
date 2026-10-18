@@ -81,8 +81,11 @@ aes:
 
 affine:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
-  # No test metadata available
+  models: [cuda, hip, omp, sycl, alpaka]
+  test:
+    regex: '(?:RESULT backend=\S+ size=\d+x\d+ median_us=)([0-9.+-e]+)'
+    args: ["--width", "127", "--height", "129", "--repeat", "4", "--samples", "2"]
+    timeout: 300
 
 aidw:
   categories: [algorithms]

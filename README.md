@@ -25,8 +25,9 @@ verbatim so the upstream harness runs directly against this tree.
 - alpaka pinned at commit
   [`b7d339d07056a9a2a6c4051cc3927157bc5f0d51`](https://github.com/alpaka-group/alpaka/commit/b7d339d07056a9a2a6c4051cc3927157bc5f0d51)
   (`dev_v3.x`), wired as the `extern/alpaka` submodule.
-- The port follows the HeCBench `cross` benchmark; its logic is re-derived, not
-  vendored. The upstream license text is kept in `src/cross-alpaka/LICENSE`.
+- The ports follow the HeCBench `cross` and `affine` benchmarks; their logic is
+  re-derived, not vendored. The upstream license text is kept in
+  `src/cross-alpaka/LICENSE`.
 
 ## Prerequisites
 
@@ -110,6 +111,7 @@ to a GPU with a lower compute capability. Use
 | benchmark | native HeCBench models | this repo (alpaka) |
 | --- | --- | --- |
 | `cross` | cuda, hip, omp, sycl | alpaka (single source) |
+| `affine` | cuda, hip, omp, sycl | alpaka (single source) |
 
 ## Native comparison
 
@@ -144,9 +146,9 @@ name the HeCBench tooling invokes. The CUDA architecture defaults to `80`; pass
 
 The vendored tools recognize the `alpaka` model through a one-token change:
 `"alpaka"` was added to `MODELS` in `tools/hecbench` and
-`tools/generate_metadata.py`, and to `cross.models` in `benchmarks.yaml`.
-Discovery then maps `src/cross-alpaka` to name `cross`, model `alpaka`, binary
-`main`. `src/scripts/benchmarks/subset.json` and
+`tools/generate_metadata.py`, and to the ported benchmarks' `models` entries in
+`benchmarks.yaml`. Discovery then maps `src/<name>-alpaka` to name `<name>`,
+model `alpaka`, binary `main`. `src/scripts/benchmarks/subset.json` and
 `src/scripts/autohecbench.py` need no change: the file keys benchmarks by name
 and has no model field, so `autohecbench` reads the `cross` regex and arguments
 directly.
