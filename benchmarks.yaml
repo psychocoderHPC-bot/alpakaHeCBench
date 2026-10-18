@@ -236,6 +236,15 @@ axhelm:
     args: ["3", "8000", "100"]
     timeout: 300
 
+axpby:
+  categories: [algorithms]
+  # "alpaka" is the alpakaHeCBench port model (src/axpby-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
+  test:
+    regex: '(?:axpby kernel runtime median: )([0-9.+-e]+)(?: us)'
+    args: ["--tensors", "4", "--fixed-length", "4093", "--chunk-size", "512", "--repeat", "2"]
+    timeout: 300
+
 b+tree:
   categories: [algorithms]
   models: [cuda, hip, omp, sycl]

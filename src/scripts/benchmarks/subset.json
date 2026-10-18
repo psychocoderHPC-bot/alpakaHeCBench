@@ -38,6 +38,19 @@
             "100"
         ]
     ],
+    "axpby": [
+        "(?:axpby kernel runtime median: )([0-9.+-e]+)(?: us)",
+        [
+            "--tensors",
+            "4",
+            "--fixed-length",
+            "4093",
+            "--chunk-size",
+            "512",
+            "--repeat",
+            "2"
+        ]
+    ],
     "aidw": [
         "(?:Average execution time of AIDW_Kernel_Tiled )([0-9.+-e]+)(?: \\(s\\))",
         [
