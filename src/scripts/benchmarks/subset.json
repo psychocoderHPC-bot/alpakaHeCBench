@@ -598,6 +598,19 @@
             "100"
         ]
     ],
+    "haversine": [
+        "(?:RESULT backend=.* median_us=)([0-9.+-e]+)",
+        [
+            "--cities",
+            "100000",
+            "--repeat",
+            "4",
+            "--samples",
+            "2",
+            "--seed",
+            "7"
+        ]
+    ],
     "heat": [
         "(?:Solve time \\(s\\): )([0-9.+-e]+)",
         [

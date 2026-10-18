@@ -5,7 +5,8 @@
 #
 # Vendored from ORNL/HeCBench at
 # 0a17ee47ca6072192101036d4bf292e6612f22e6 (benchmarks.yaml).
-# The only change adds the "alpaka" model to cross.models.
+# Changes add the "alpaka" model to the ported benchmarks and the test
+# metadata that the alpaka ports emit.
 # HeCBench Benchmark Metadata
 #
 # Auto-generated from subset.json and CMakeLists.txt files
@@ -1254,8 +1255,11 @@ hausdorff:
 
 haversine:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
-  # No test metadata available
+  models: [cuda, hip, omp, sycl, alpaka]
+  test:
+    regex: '(?:RESULT backend=.* median_us=)([0-9.+-e]+)'
+    args: ["--cities", "100000", "--repeat", "4", "--samples", "2", "--seed", "7"]
+    timeout: 300
 
 hbc:
   categories: [algorithms]
