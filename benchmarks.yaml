@@ -5,7 +5,7 @@
 #
 # Vendored from ORNL/HeCBench at
 # 0a17ee47ca6072192101036d4bf292e6612f22e6 (benchmarks.yaml).
-# The only change adds the "alpaka" model to cross.models.
+# The only change adds the "alpaka" model to the ported benchmarks (cross and 28 ports).
 # HeCBench Benchmark Metadata
 #
 # Auto-generated from subset.json and CMakeLists.txt files
@@ -81,9 +81,11 @@ aes:
 
 affine:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
-  # No test metadata available
-
+  models: [cuda, hip, omp, sycl, alpaka]
+  test:
+    regex: '(?:RESULT backend=\S+ size=\d+x\d+ median_us=)([0-9.+-e]+)'
+    args: ["--width", "127", "--height", "129", "--repeat", "4", "--samples", "2"]
+    timeout: 300
 aidw:
   categories: [algorithms]
   models: [cuda, hip, omp, sycl]
@@ -290,12 +292,11 @@ bicgstab:
 
 bilateral:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
+  models: [cuda, hip, omp, sycl, alpaka]
   test:
     regex: '(?:Average kernel execution time \([1-9]x[1-9]\) )([0-9.+-e]+)(?: \(ms\))'
     args: ["2960", "1440", "0.5", "0.5", "1000"]
     timeout: 300
-
 bincount:
   categories: [algorithms]
   models: [cuda, hip, sycl]
@@ -337,12 +338,12 @@ bitpermute:
 
 black-scholes:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
+  # "alpaka" is the alpakaHeCBench port model (src/black-scholes-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
   test:
     regex: '(?:Processing time on GPU: )([0-9.+-e]+)(?: \(ms\))'
     args: ["100"]
     timeout: 300
-
 blas-dot:
   categories: [math]
   models: [cuda, hip, sycl]
@@ -416,12 +417,12 @@ bonds:
 
 boxfilter:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
+  # "alpaka" is the alpakaHeCBench port model (src/boxfilter-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
   test:
     regex: '(?:Average kernel execution time )([0-9.+-e]+)(?: \(us\))'
     args: ["../boxfilter-sycl/data/lenaRGB.ppm", "10000"]
     timeout: 300
-
 bscan:
   categories: [algorithms]
   models: [cuda, hip, sycl]
@@ -611,9 +612,9 @@ collision:
 
 colorwheel:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
+  # "alpaka" is the alpakaHeCBench port model (src/colorwheel-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
   # No test metadata available
-
 columnarSolver:
   categories: [algorithms]
   models: [cuda, hip, omp, sycl]
@@ -755,12 +756,12 @@ daphne:
 
 dct8x8:
   categories: [math]
-  models: [cuda, hip, omp, sycl]
+  # "alpaka" is the alpakaHeCBench port model (src/dct8x8-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
   test:
     regex: '(?:Average DCT8x8 kernel execution time )([0-9.+-e]+)(?: \(s\))'
     args: ["8192", "8192", "100"]
     timeout: 300
-
 ddbp:
   categories: [algorithms]
   models: [cuda, hip, omp, sycl]
@@ -1107,12 +1108,12 @@ gamma-correction:
 
 gaussian:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
+  # "alpaka" is the alpakaHeCBench port model (src/gaussian-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
   test:
     regex: '(?:Device offloading time )([0-9.+-e]+)(?: \(us\))'
     args: ["-q", "-t", "-s", "4096"]
     timeout: 300
-
 gc:
   categories: [algorithms]
   models: [cuda, hip, omp, sycl]
@@ -1254,9 +1255,11 @@ hausdorff:
 
 haversine:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
-  # No test metadata available
-
+  models: [cuda, hip, omp, sycl, alpaka]
+  test:
+    regex: '(?:RESULT backend=.* median_us=)([0-9.+-e]+)'
+    args: ["--cities", "100000", "--repeat", "4", "--samples", "2", "--seed", "7"]
+    timeout: 300
 hbc:
   categories: [algorithms]
   models: [cuda, hip, sycl]
@@ -1277,12 +1280,12 @@ heat:
 
 heat2d:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
+  # "alpaka" is the alpakaHeCBench port model (src/heat2d-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
   test:
     regex: '([0-9.+-e]+)(?: usec/iter)'
     args: ["1024", "1024", "100"]
     timeout: 300
-
 hellinger:
   categories: [algorithms]
   models: [cuda, hip, omp, sycl]
@@ -1300,12 +1303,12 @@ hexciton:
 
 histogram:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
+  # "alpaka" is the alpakaHeCBench port model (src/histogram-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
   test:
     regex: '(?:Avg time )([0-9.+-e]+)(?: us )'
     args: ["--width=3840", "--height=2160"]
     timeout: 300
-
 hmm:
   categories: [algorithms]
   models: [cuda, hip, omp, sycl]
@@ -1404,12 +1407,12 @@ is:
 
 ising:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
+  # "alpaka" is the alpakaHeCBench port model (src/ising-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
   test:
     regex: '(?:elapsed time: )([0-9.+-e]+)(?: sec)'
     args: []
     timeout: 300
-
 iso2dfd:
   categories: [algorithms]
   models: [cuda, hip, omp, sycl]
@@ -1425,12 +1428,12 @@ jaccard:
 
 jacobi:
   categories: [math, simulation]
-  models: [cuda, hip, omp, sycl]
+  # "alpaka" is the alpakaHeCBench port model (src/jacobi-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
   test:
     regex: '(?:Total elapsed time: )([0-9.+-e]+)(?: seconds)'
     args: []
     timeout: 300
-
 jenkins-hash:
   categories: [algorithms]
   models: [cuda, hip, omp, sycl]
@@ -1512,12 +1515,12 @@ laplace:
 
 laplace3d:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
+  # "alpaka" is the alpakaHeCBench port model (src/laplace3d-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
   test:
     regex: '(?:Average kernel execution time: )([0-9.+-e]+)(?: \(s\))'
     args: ["128", "128", "128", "100", "1"]
     timeout: 300
-
 lavaMD:
   categories: [algorithms]
   models: [cuda, hip, omp, sycl]
@@ -1697,12 +1700,12 @@ mallocFree:
 
 mandelbrot:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
+  # "alpaka" is the alpakaHeCBench port model (src/mandelbrot-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
   test:
     regex: '(?:Average kernel execution time: )([0-9.+-e]+)(?: ms)'
     args: ["1000"]
     timeout: 300
-
 marchingCubes:
   categories: [algorithms]
   models: [cuda, hip, sycl]
@@ -1728,12 +1731,11 @@ matern:
 
 matrix-rotate:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
+  models: [cuda, hip, omp, sycl, alpaka]
   test:
     regex: '(?:Average kernel execution time: )([0-9.+-e]+)(?: \(s\))'
     args: ["5000", "100"]
     timeout: 300
-
 matrixT:
   categories: [algorithms]
   models: [cuda, hip, sycl]
@@ -1793,17 +1795,20 @@ meanshift:
 
 medianfilter:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
+  # "alpaka" is the alpakaHeCBench port model (src/medianfilter-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
   test:
     regex: '(?:Average kernel execution time: )([0-9.+-e]+)(?: \(s\))'
     args: ["../medianfilter-sycl/data/SierrasRGB.ppm", "1000"]
     timeout: 300
-
 memcpy:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
-  # No test metadata available
-
+  # "alpaka" is the alpakaHeCBench port model (src/memcpy-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
+  test:
+    regex: 'Memcpy verification PASSED'
+    args: ["--sizes", "64,1000,65536", "--repeat", "4", "--samples", "2"]
+    timeout: 300
 memtest:
   categories: [algorithms]
   models: [cuda, hip, omp, sycl]
@@ -1924,9 +1929,11 @@ moe:
 
 morphology:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
-  # No test metadata available
-
+  models: [cuda, hip, omp, sycl, alpaka]
+  test:
+    regex: '(?:median_us=)([0-9.+-e]+)'
+    args: ["--width", "129", "--height", "127", "--hsize", "5", "--vsize", "5", "--repeat", "2", "--samples", "2"]
+    timeout: 300
 mpc:
   categories: [algorithms]
   models: [cuda, hip, sycl]
@@ -2226,9 +2233,12 @@ pool:
 
 popcount:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
-  # No test metadata available
-
+  # "alpaka" is the alpakaHeCBench port model (src/popcount-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
+  test:
+    regex: '(?:Popcount kernel runtime median: )([0-9.+-e]+)(?: us)'
+    args: ["4096", "2"]
+    timeout: 300
 prefetch:
   categories: [algorithms]
   models: [cuda, hip, sycl]
@@ -2339,9 +2349,11 @@ recursiveGaussian:
 
 relu:
   categories: [algorithms]
-  models: [cuda, hip, sycl]
-  # No test metadata available
-
+  models: [alpaka, cuda, hip, sycl]
+  test:
+    regex: '(?:Relu(?:Grad)? \(.*\) kernel runtime median: )([0-9.+-e]+)(?: us)'
+    args: ["--size", "4096", "--repeat", "2"]
+    timeout: 300
 remap:
   categories: [algorithms]
   models: [cuda, hip, sycl]
@@ -2349,9 +2361,9 @@ remap:
 
 resize:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
+  # "alpaka" is the alpakaHeCBench port model (src/resize-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
   # No test metadata available
-
 resnet-kernels:
   categories: [algorithms]
   models: [cuda, hip, sycl]
@@ -2359,9 +2371,12 @@ resnet-kernels:
 
 reverse:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
-  # No test metadata available
-
+  # "alpaka" is the alpakaHeCBench port model (src/reverse-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
+  test:
+    regex: '(?:Total kernel execution time \(median of [0-9]+\): )([0-9.+-e]+)(?: \(s\))'
+    args: ["4"]
+    timeout: 300
 reverse2D:
   categories: [algorithms]
   models: [cuda, hip, sycl]
@@ -2478,9 +2493,12 @@ sc:
 
 scan:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
-  # No test metadata available
-
+  # "alpaka" is the alpakaHeCBench port model (src/scan-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
+  test:
+    regex: 'scan verification PASSED'
+    args: ["--n", "100000", "--chunk", "0", "--repeat", "2", "--samples", "2", "--type", "int"]
+    timeout: 300
 scan2:
   categories: [algorithms]
   models: [cuda, hip, omp, sycl]
@@ -2614,12 +2632,11 @@ sobol:
 
 softmax:
   categories: [math, ml]
-  models: [cuda, hip, omp, sycl]
+  models: [cuda, hip, omp, sycl, alpaka]
   test:
     regex: '(?:Average kernel execution time: )([0-9.+-e]+)(?: \(ms\))'
     args: ["100000", "784", "0", "100"]
     timeout: 300
-
 softmax-fused:
   categories: [ml]
   models: [cuda, hip, sycl]
@@ -2747,17 +2764,19 @@ sssp:
 
 stddev:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
+  models: [alpaka, cuda, hip, omp, sycl]
   test:
     regex: '(?:Average execution time of stddev kernels: )([0-9.+-e]+)(?: \(s\))'
     args: ["65536", "16384", "100"]
     timeout: 300
-
 stencil1d:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
-  # No test metadata available
-
+  # "alpaka" is the alpakaHeCBench port model (src/stencil1d-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
+  test:
+    regex: '(?:stencil1d kernel runtime \(batch of [0-9]+\): )([0-9.+-e]+)(?: us/kernel)'
+    args: ["--length", "1021", "--repeat", "2"]
+    timeout: 300
 stencil3d:
   categories: [algorithms]
   models: [cuda, hip, omp, sycl]
@@ -3037,3 +3056,21 @@ zoom:
   categories: [algorithms]
   models: [cuda, hip, sycl]
   # No test metadata available
+
+axpby:
+  categories: [algorithms]
+  # "alpaka" is the alpakaHeCBench port model (src/axpby-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
+  test:
+    regex: '(?:axpby kernel runtime median: )([0-9.+-e]+)(?: us)'
+    args: ["--tensors", "4", "--fixed-length", "4093", "--chunk-size", "512", "--repeat", "2"]
+    timeout: 300
+
+upsample:
+  categories: [algorithms]
+  # "alpaka" is the alpakaHeCBench port model (src/upsample-alpaka).
+  models: [cuda, omp, alpaka]
+  test:
+    regex: '(?:RESULT .* median_us=)([0-9.+-e]+)'
+    args: ["4", "8", "31", "33", "4"]
+    timeout: 300

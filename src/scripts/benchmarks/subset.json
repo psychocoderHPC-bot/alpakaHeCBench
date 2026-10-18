@@ -127,7 +127,10 @@
     "background-subtract": [
         "(?:Average kernel execution time: )([0-9.+-e]+)(?: \\(us\\))",
         [
-            "4096", "2048", "1", "102"
+            "4096",
+            "2048",
+            "1",
+            "102"
         ]
     ],
     "bezier-surface": [
@@ -276,8 +279,20 @@
     "cmp": [
         "(?: Giga semblances traces per second: )([0-9.+-e]+)",
         [
-          "-c0", "1.98e-7","-c1","1.77e-6","-nc","5","-aph","600","-tau","0.002","-v","2",
-          "-i", "../cmp-cuda/data/simple-synthetic.su"
+            "-c0",
+            "1.98e-7",
+            "-c1",
+            "1.77e-6",
+            "-nc",
+            "5",
+            "-aph",
+            "600",
+            "-tau",
+            "0.002",
+            "-v",
+            "2",
+            "-i",
+            "../cmp-cuda/data/simple-synthetic.su"
         ]
     ],
     "cobahh": [
@@ -315,7 +330,13 @@
     "convolution3D": [
         "(?:Average kernel execution time of conv3d_s3 kernel: )([0-9.+-e]+)(?: \\(us\\))",
         [
-            "32","6","16","14","14","5","100"
+            "32",
+            "6",
+            "16",
+            "14",
+            "14",
+            "5",
+            "100"
         ]
     ],
     "convolutionSeparable": [
@@ -355,7 +376,10 @@
     ],
     "damage": [
         "(?:Average kernel execution time )([0-9.+-e]+)(?: \\(s\\))",
-        ["50000000", "1000"]
+        [
+            "50000000",
+            "1000"
+        ]
     ],
     "dct8x8": [
         "(?:Average DCT8x8 kernel execution time )([0-9.+-e]+)(?: \\(s\\))",
@@ -544,7 +568,7 @@
     ],
     "gd": [
         "(?:Training time takes )([0-9.+-e]+)(?: \\(s\\))",
-	[
+        [
             "../gd-cuda/gisette_scale",
             "0.0001",
             "10",
@@ -640,7 +664,14 @@
     ],
     "hotspot3D": [
         "(?:Average kernel execution time )([0-9.+-e]+)(?: \\(us\\))",
-        ["512", "8", "5000", "../data/hotspot3D/power_512x8", "../data/hotspot3D/temp_512x8", "output.out"]
+        [
+            "512",
+            "8",
+            "5000",
+            "../data/hotspot3D/power_512x8",
+            "../data/hotspot3D/temp_512x8",
+            "output.out"
+        ]
     ],
     "hwt1d": [
         "(?:Average device offload time )([0-9.+-e]+)(?: \\(s\\))",
@@ -975,7 +1006,8 @@
         [
             "10000",
             "50",
-            "100"]
+            "100"
+        ]
     ],
     "pns": [
         "(?:Total device execution time: )([0-9.+-e]+)(?: s)",
@@ -1116,6 +1148,138 @@
         [
             "10000000",
             "100"
+        ]
+    ],
+    "affine": [
+        "(?:RESULT backend=\\S+ size=\\d+x\\d+ median_us=)([0-9.+-e]+)",
+        [
+            "--width",
+            "127",
+            "--height",
+            "129",
+            "--repeat",
+            "4",
+            "--samples",
+            "2"
+        ]
+    ],
+    "axpby": [
+        "(?:axpby kernel runtime median: )([0-9.+-e]+)(?: us)",
+        [
+            "--tensors",
+            "4",
+            "--fixed-length",
+            "4093",
+            "--chunk-size",
+            "512",
+            "--repeat",
+            "2"
+        ]
+    ],
+    "colorwheel": [
+        "(?:RESULT .*median_us=)([0-9.+-e]+)",
+        [
+            "--size",
+            "256",
+            "--repeat",
+            "2",
+            "--samples",
+            "1"
+        ]
+    ],
+    "haversine": [
+        "(?:RESULT backend=.* median_us=)([0-9.+-e]+)",
+        [
+            "--cities",
+            "100000",
+            "--repeat",
+            "4",
+            "--samples",
+            "2",
+            "--seed",
+            "7"
+        ]
+    ],
+    "morphology": [
+        "(?:median_us=)([0-9.+-e]+)",
+        [
+            "--width",
+            "129",
+            "--height",
+            "127",
+            "--hsize",
+            "5",
+            "--vsize",
+            "5",
+            "--repeat",
+            "2",
+            "--samples",
+            "2"
+        ]
+    ],
+    "popcount": [
+        "(?:Popcount kernel runtime median: )([0-9.+-e]+)(?: us)",
+        [
+            "4096",
+            "2"
+        ]
+    ],
+    "relu": [
+        "(?:Relu(?:Grad)? \\(.*\\) kernel runtime median: )([0-9.+-e]+)(?: us)",
+        [
+            "--size",
+            "4096",
+            "--repeat",
+            "2"
+        ]
+    ],
+    "resize": [
+        "(?:RESULT .*median_us=)([0-9.+-e]+)",
+        [
+            "--in-width",
+            "257",
+            "--in-height",
+            "129",
+            "--out-width",
+            "65",
+            "--out-height",
+            "33",
+            "--channels",
+            "8",
+            "--repeat",
+            "4",
+            "--samples",
+            "2"
+        ]
+    ],
+    "reverse": [
+        "(?:Total kernel execution time \\(median of [0-9]+\\): )([0-9.+-e]+)(?: \\(s\\))",
+        [
+            "4"
+        ]
+    ],
+    "scan": [
+        "scan verification PASSED",
+        [
+            "--n",
+            "100000",
+            "--chunk",
+            "0",
+            "--repeat",
+            "2",
+            "--samples",
+            "2",
+            "--type",
+            "int"
+        ]
+    ],
+    "stencil1d": [
+        "(?:stencil1d kernel runtime \\(batch of [0-9]+\\): )([0-9.+-e]+)(?: us/kernel)",
+        [
+            "--length",
+            "1021",
+            "--repeat",
+            "2"
         ]
     ]
 }
