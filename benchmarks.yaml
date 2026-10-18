@@ -2614,7 +2614,7 @@ sobol:
 
 softmax:
   categories: [math, ml]
-  models: [cuda, hip, omp, sycl]
+  models: [cuda, hip, omp, sycl, alpaka]
   test:
     regex: '(?:Average kernel execution time: )([0-9.+-e]+)(?: \(ms\))'
     args: ["100000", "784", "0", "100"]
