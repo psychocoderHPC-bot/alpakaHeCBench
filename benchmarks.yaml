@@ -2913,6 +2913,15 @@ unfold:
   models: [cuda, hip, sycl]
   # No test metadata available
 
+upsample:
+  categories: [algorithms]
+  # "alpaka" is the alpakaHeCBench port model (src/upsample-alpaka).
+  models: [cuda, omp, alpaka]
+  test:
+    regex: '(?:RESULT .* median_us=)([0-9.+-e]+)'
+    args: ["4", "8", "31", "33", "4"]
+    timeout: 300
+
 urng:
   categories: [algorithms]
   models: [cuda, hip, omp, sycl]
