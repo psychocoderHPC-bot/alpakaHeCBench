@@ -2755,8 +2755,12 @@ stddev:
 
 stencil1d:
   categories: [algorithms]
-  models: [cuda, hip, omp, sycl]
-  # No test metadata available
+  # "alpaka" is the alpakaHeCBench port model (src/stencil1d-alpaka).
+  models: [cuda, hip, omp, sycl, alpaka]
+  test:
+    regex: '(?:stencil1d kernel runtime \(batch of [0-9]+\): )([0-9.+-e]+)(?: us/kernel)'
+    args: ["--length", "1021", "--repeat", "2"]
+    timeout: 300
 
 stencil3d:
   categories: [algorithms]
