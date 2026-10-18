@@ -1001,6 +1001,15 @@
             "1000"
         ]
     ],
+    "relu": [
+        "(?:Relu(?:Grad)? \\(.*\\) kernel runtime median: )([0-9.+-e]+)(?: us)",
+        [
+            "--size",
+            "4096",
+            "--repeat",
+            "2"
+        ]
+    ],
     "rsc": [
         "(?:Total task execution time for [0-9.+-e]+ iterations: )([0-9.+-e]+)(?: \\((?:s|ms|us)\\))",
         [
