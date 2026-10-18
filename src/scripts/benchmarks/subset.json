@@ -287,6 +287,17 @@
             "10"
         ]
     ],
+    "colorwheel": [
+        "(?:RESULT .*median_us=)([0-9.+-e]+)",
+        [
+            "--size",
+            "256",
+            "--repeat",
+            "2",
+            "--samples",
+            "1"
+        ]
+    ],
     "complex": [
         "(?:Average kernel execution time \\([a-z]+\\) )([0-9.+-e]+)(?: \\(s\\))",
         [
