@@ -38,7 +38,7 @@ namespace gaussianBench
         bool verifyOnly = false;
         //! Print the full solution (debugging aid).
         bool verbose = false;
-        //! Native-compatible quiet flag. The port never prints a matrix dump, so it only affects the timing line.
+        //! Native-compatible quiet flag. The port prints no matrix dump, so it has no visible effect.
         bool quiet = false;
         //! Print the native-compatible "Device offloading time" line.
         bool timing = false;
