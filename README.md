@@ -25,8 +25,9 @@ verbatim so the upstream harness runs directly against this tree.
 - alpaka pinned at commit
   [`b7d339d07056a9a2a6c4051cc3927157bc5f0d51`](https://github.com/alpaka-group/alpaka/commit/b7d339d07056a9a2a6c4051cc3927157bc5f0d51)
   (`dev_v3.x`), wired as the `extern/alpaka` submodule.
-- The port follows the HeCBench `cross` benchmark; its logic is re-derived, not
-  vendored. The upstream license text is kept in `src/cross-alpaka/LICENSE`.
+- The ports follow the HeCBench `cross` and `dct8x8` benchmarks; their logic is
+  re-derived, not vendored. The upstream license text for `cross` is kept in
+  `src/cross-alpaka/LICENSE`; the `dct8x8` sources carry per-file SPDX headers.
 
 ## Prerequisites
 
@@ -110,6 +111,7 @@ to a GPU with a lower compute capability. Use
 | benchmark | native HeCBench models | this repo (alpaka) |
 | --- | --- | --- |
 | `cross` | cuda, hip, omp, sycl | alpaka (single source) |
+| `dct8x8` | cuda, hip, omp, sycl | alpaka (single source) |
 
 ## Native comparison
 
@@ -136,20 +138,21 @@ keep its numbers separate from the CUDA ratio.
 
 ## The `make` wrapper and the upstream tools
 
-`make -C src/cross-alpaka` configures a `Release` build (`-O3`, `-march=native`),
-builds the `cross-alpaka` target and copies the binary to `./main`, which is the
-name the HeCBench tooling invokes. The CUDA architecture defaults to `80`; pass
-`make CUDA_ARCH=<n>` (or `ARCH=<n>`) to target another GPU, and
+`make -C src/cross-alpaka` and `make -C src/dct8x8-alpaka` configure a `Release`
+build (`-O3`, `-march=native`), build the `cross-alpaka` / `dct8x8-alpaka` target
+and copy the binary to `./main`, which is the name the HeCBench tooling invokes.
+The CUDA architecture defaults to `80`; pass `make CUDA_ARCH=<n>` (or
+`ARCH=<n>`) to target another GPU, and
 `make HOST_CXX_FLAGS=` to drop `-march=native`.
 
 The vendored tools recognize the `alpaka` model through a one-token change:
 `"alpaka"` was added to `MODELS` in `tools/hecbench` and
-`tools/generate_metadata.py`, and to `cross.models` in `benchmarks.yaml`.
-Discovery then maps `src/cross-alpaka` to name `cross`, model `alpaka`, binary
-`main`. `src/scripts/benchmarks/subset.json` and
+`tools/generate_metadata.py`, and to `cross.models` and `dct8x8.models` in
+`benchmarks.yaml`. Discovery then maps `src/<name>-alpaka` to name `<name>`,
+model `alpaka`, binary `main`. `src/scripts/benchmarks/subset.json` and
 `src/scripts/autohecbench.py` need no change: the file keys benchmarks by name
-and has no model field, so `autohecbench` reads the `cross` regex and arguments
-directly.
+and has no model field, so `autohecbench` reads each benchmark's regex and
+arguments directly.
 
 ```bash
 make -C src/cross-alpaka
