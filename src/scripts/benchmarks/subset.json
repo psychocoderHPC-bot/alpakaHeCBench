@@ -1057,6 +1057,15 @@
             "100"
         ]
     ],
+    "stencil1d": [
+        "(?:stencil1d kernel runtime \\(batch of [0-9]+\\): )([0-9.+-e]+)(?: us/kernel)",
+        [
+            "--length",
+            "134217728",
+            "--repeat",
+            "1000"
+        ]
+    ],
     "su3": [
         "(?:Total kernel execution time = )([0-9.+-e]+)(?: \\(s\\))"
     ],

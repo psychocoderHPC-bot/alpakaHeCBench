@@ -110,6 +110,7 @@ to a GPU with a lower compute capability. Use
 | benchmark | native HeCBench models | this repo (alpaka) |
 | --- | --- | --- |
 | `cross` | cuda, hip, omp, sycl | alpaka (single source) |
+| `stencil1d` | cuda, hip, omp, sycl | alpaka (single source) |
 
 ## Native comparison
 
@@ -144,12 +145,13 @@ name the HeCBench tooling invokes. The CUDA architecture defaults to `80`; pass
 
 The vendored tools recognize the `alpaka` model through a one-token change:
 `"alpaka"` was added to `MODELS` in `tools/hecbench` and
-`tools/generate_metadata.py`, and to `cross.models` in `benchmarks.yaml`.
-Discovery then maps `src/cross-alpaka` to name `cross`, model `alpaka`, binary
-`main`. `src/scripts/benchmarks/subset.json` and
+`tools/generate_metadata.py`, and to the `models` lists of `cross` and
+`stencil1d` in `benchmarks.yaml`. Discovery then maps `src/cross-alpaka` to name
+`cross` and `src/stencil1d-alpaka` to name `stencil1d`, both model `alpaka`,
+binary `main`. `src/scripts/benchmarks/subset.json` and
 `src/scripts/autohecbench.py` need no change: the file keys benchmarks by name
-and has no model field, so `autohecbench` reads the `cross` regex and arguments
-directly.
+and has no model field, so `autohecbench` reads the per-benchmark regex and
+arguments directly.
 
 ```bash
 make -C src/cross-alpaka
