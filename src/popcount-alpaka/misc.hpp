@@ -24,7 +24,7 @@ namespace popcount
 {
     // HeCBench runs the benchmark with `./main 16777216 1000`; use those values as defaults.
     constexpr int defaultCount = 16777216;
-    constexpr int defaultRepeat = 100;
+    constexpr int defaultRepeat = 1000;
 
     /** Parse one decimal integer without accepting trailing characters or overflow. */
     inline bool parseInteger(std::string_view text, int& value)

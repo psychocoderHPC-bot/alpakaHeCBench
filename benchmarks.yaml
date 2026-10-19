@@ -2229,8 +2229,8 @@ popcount:
   # "alpaka" is the alpakaHeCBench port model (src/popcount-alpaka).
   models: [cuda, hip, omp, sycl, alpaka]
   test:
-    regex: '(?:Popcount kernel runtime median: )([0-9.+-e]+)(?: us)'
-    args: ["4096", "2"]
+    regex: 'Average kernel execution time \(pc[1-6]\): ([0-9.+-e]+) \(us\)'
+    args: ["16777216", "1000"]
     timeout: 300
 
 prefetch:

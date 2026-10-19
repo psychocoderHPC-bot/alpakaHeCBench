@@ -30,13 +30,15 @@ namespace popcount
         return count;
     }
 
-    /** Verify the device result against the host reference.
+    /** Verify the device result of one variant against the host reference.
      *
      * The operation produces exact integer counts in `[0, 64]`, so the comparison is bit-exact.
      * Non-finite values cannot occur; the range check also rejects any out of range value.
+     * On success it prints `<label> Success`; on the first mismatch it prints `<label> Fail`,
+     * matching the HeCBench reference validation semantics.
      */
     template<typename T_Out, typename T_In>
-    int verify(int count, T_Out const& out, T_In const& in)
+    int verify(char const* label, int count, T_Out const& out, T_In const& in)
     {
         int error = EXIT_SUCCESS;
         for(int i = 0; i < count; ++i)
@@ -50,7 +52,7 @@ namespace popcount
                 break;
             }
         }
-        printf("Popcount verification %s\n", error ? "FAILED" : "PASSED");
+        printf("%s %s\n", label, error ? "Fail" : "Success");
         return error;
     }
 

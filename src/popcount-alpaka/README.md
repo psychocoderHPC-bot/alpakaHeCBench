@@ -12,17 +12,24 @@ CUDA GPU.
 
 ## Computation
 
-For every element of a 64 bit integer array the kernel returns the number of set bits:
+For every element of a 64 bit integer array the program returns the number of set bits:
 
 ```text
 output[i] = popcount(input[i])     // 0 .. 64
 ```
 
-The kernel calls `alpaka::popcount`, which lowers to `std::popcount` on the host and to the native
-`__popcll` on NVIDIA hardware. This matches the hardware-intrinsic variant (`pc6`) of the HeCBench
-reference. The SWAR masks, the measured Kernighan loop, the lookup table and the
-`__builtin_popcountll` variant of the reference are not reproduced; Kernighan's loop is retained
-only as the host reference used by validation.
+The benchmark implements the six algorithms of the HeCBench `popcount` reference as alpaka kernels.
+Each one runs as a device kernel through `onAcc::makeIdxMap` and `queue.enqueue`; none of them runs
+as host-side serial code.
+
+| id | algorithm |
+|---|---|
+| `pc1` | SWAR with the `m1`/`m2`/`m4` masks, horizontal byte adds, final `x & 0x7f` |
+| `pc2` | SWAR through the nibble fold, then `(x * h01) >> 56` |
+| `pc3` | Kernighan loop `for(count=0; x; count++) x &= x - 1` |
+| `pc4` | fixed 64 iteration bit loop over `x & 1` |
+| `pc5` | 256 entry lookup table, eight byte lookups summed |
+| `pc6` | `alpaka::popcount` (`std::popcount` on the host, native popcount instructions on CUDA/HIP/SYCL) |
 
 Data generation matches the reference bit for bit: `srand(2)` followed by two `rand()` draws per
 element, with the first draw shifted into the high 32 bits:
@@ -41,25 +48,33 @@ Catch2. It accepts the native positional form and the option form:
 ```
 
 `--size` and `--repeat` also accept the `--option=value` spelling. The defaults are
-`count = 16777216` and `repeat = 100`. Both values must be positive integers. Unknown options,
-missing option values, malformed numbers, non-positive values and extra positional arguments print
-a message to stderr and exit non-zero.
+`count = 16777216` and `repeat = 1000`, the values the HeCBench Makefiles pass explicitly. Both
+values must be positive integers. Unknown options, missing option values, malformed numbers,
+non-positive values and extra positional arguments print a message to stderr and exit non-zero.
 
-One warm-up enqueue runs first. The reported value is the median of the `repeat` measured
-iterations. Only the kernel enqueue and the device wait are timed; allocation, host/device copies
-and validation are excluded.
+Timing follows the HeCBench scope. Each variant runs one discarded warm-up launch, then `repeat`
+launches are enqueued under one timer and the queue is synchronized once. The printed value is the
+average `total_us / repeat`. Allocation, host/device copies and validation are excluded.
+
+The output has one ORNL-compatible line per variant:
+
+```text
+Average kernel execution time (pc1): <value> (us)
+...
+Average kernel execution time (pc6): <value> (us)
+```
 
 ## Test semantics
 
 `helper.hpp` contains the host reference `popcountReference`, the exact Kernighan loop of the
-HeCBench reference `popcount_ref`. The device output is compared bit-exact against it on the host,
-which is sufficient because popcount returns an exact integer. `checkRange` in `main.cpp`
-independently rejects any host result outside `[0, 64]` before the reference comparison. A failure
-prints `Popcount verification FAILED` and returns non-zero; success prints
-`Popcount verification PASSED`.
+HeCBench reference `popcount_ref`. After each variant finishes, its device output is copied back and
+compared bit-exact against the reference on the host, with the ORNL validation semantics: stop at
+the first mismatch. `checkRange` in `main.cpp` independently rejects any host result outside
+`[0, 64]` before the reference comparison. Each variant prints `pcN Success` or `pcN Fail`; any
+failure makes the program exit non-zero.
 
 CTest runs the binary as `popcount-alpaka 4096 2` and matches the timing line
-`Popcount kernel runtime median: <value> us`.
+`Average kernel execution time (pc[1-6]): <value> (us)`.
 
 ## Provenance
 
