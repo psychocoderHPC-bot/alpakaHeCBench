@@ -42,26 +42,36 @@ namespace mandel
         {
             std::cout << "Usage: " << program << " [<repeat>] [options]\n"
                       << "  <repeat>          Number of measured repetitions (HeCBench positional form)\n"
-                      << "  --rows <n>        Number of rows of the image\n"
-                      << "  --cols <n>        Number of columns of the image\n"
-                      << "  --max-iter <n>    Iteration limit\n"
-                      << "  --repeat <n>      Number of measured repetitions\n"
+                      << "  --rows <n>        Number of rows of the image (default 1080)\n"
+                      << "  --cols <n>        Number of columns of the image (default 1920)\n"
+                      << "  --max-iter <n>    Iteration limit (default 100)\n"
+                      << "  --repeat <n>      Number of measured repetitions (default 1000)\n"
+                      << "  --all-backends    Run every enabled backend/executor (default: one)\n"
                       << "  -h, --help        Print this help\n";
         }
     } // namespace detail
 
     /** Parse the command line for size, iteration limit and repetitions.
      *
-     * Defaults replicate the HeCBench reference program (`row_size = 1024`, `col_size = 1024`,
-     * `max_iterations = 1000`); the number of repetitions mirrors the reference `./main <repeat>`
-     * argument. Both named options and the single positional `<repeat>` form are accepted.
+     * Defaults replicate the HeCBench reference program (`row_size = 1080`, `col_size = 1920`,
+     * `max_iterations = 100`); the number of repetitions mirrors the reference `./main <repeat>`
+     * argument, whose harness value is 1000. Both named options and the single positional
+     * `<repeat>` form are accepted.
      */
-    inline int parseCmd(int argc, char* argv[], int& rows, int& cols, int& maxIterations, int& repetitions)
+    inline int parseCmd(
+        int argc,
+        char* argv[],
+        int& rows,
+        int& cols,
+        int& maxIterations,
+        int& repetitions,
+        bool& allBackends)
     {
         rows = defaultRowSize;
         cols = defaultColSize;
         maxIterations = defaultMaxIterations;
         repetitions = defaultRepetitions;
+        allBackends = false;
 
         bool hasPositional = false;
         bool hasRepeatOption = false;
@@ -86,6 +96,17 @@ namespace mandel
                     name = arg.substr(0, separator);
                     text = arg.substr(separator + 1);
                     hasInlineValue = true;
+                }
+
+                if(name == "--all-backends")
+                {
+                    if(hasInlineValue)
+                    {
+                        std::cerr << "Error: option '--all-backends' does not take a value.\n";
+                        return EXIT_FAILURE;
+                    }
+                    allBackends = true;
+                    continue;
                 }
 
                 int* target = nullptr;

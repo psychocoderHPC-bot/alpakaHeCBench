@@ -32,7 +32,8 @@
 #include <algorithm>
 #include <chrono>
 #include <iostream>
-#include <vector>
+#include <tuple>
+#include <type_traits>
 
 namespace mandelbrotAlpaka
 {
@@ -76,32 +77,60 @@ namespace mandelbrotAlpaka
         return onHost::FrameSpec{Vec{std::max(blocksCols, 1u), std::max(blocksRows, 1u)}, Vec{chunk, chunk}, exec};
     }
 
-    /** Run one warm-up iteration followed by `repeat` measured iterations.
+    /** Sentinel returned by runFirstAvailable() when no backend matched. */
+    inline constexpr int backendSkipped = -1;
+
+    /** Run the first available backend that matches `predicate`.
      *
-     * @return the median runtime in microseconds.
+     * The candidate list is a tuple of heterogeneous backend dictionaries, so
+     * selection is a compile-time expansion with a runtime availability check.
+     *
+     * @return the backend's exit code, or backendSkipped when none matched.
+     */
+    template<typename T_Backends, typename T_Predicate, typename T_Run>
+    int runFirstAvailable(T_Backends const& backends, T_Predicate const& predicate, T_Run const& run)
+    {
+        int result = backendSkipped;
+        bool selected = false;
+        std::apply(
+            [&](auto const&... backend)
+            {
+                auto const tryBackend = [&](auto const& candidate)
+                {
+                    if(selected)
+                        return;
+                    if(!predicate(candidate))
+                        return;
+                    auto const deviceSpec = alpaka::onHost::makeDeviceSpec(candidate);
+                    if(!alpaka::onHost::makeDeviceSelector(deviceSpec).isAvailable())
+                        return;
+                    selected = true;
+                    result = run(candidate);
+                };
+                (tryBackend(backend), ...);
+            },
+            backends);
+        return selected ? result : backendSkipped;
+    }
+
+    /** Time `repeat` kernel launches under one timer with a single wait.
+     *
+     * This mirrors the HeCBench reference: there is no warm-up, and the reported
+     * value is the arithmetic mean over the measured launches.
+     *
+     * @return the arithmetic mean runtime in milliseconds.
      */
     template<typename T_KernelBundle>
     double timeKernel(auto& queue, auto const& frameSpec, T_KernelBundle const& kernel, int repeat)
     {
         using namespace alpaka;
-        queue.enqueue(frameSpec, kernel);
-        onHost::wait(queue);
-
-        std::vector<double> samples;
-        samples.reserve(static_cast<std::size_t>(repeat));
+        auto const start = std::chrono::steady_clock::now();
         for(int i = 0; i < repeat; ++i)
-        {
-            auto const start = std::chrono::steady_clock::now();
             queue.enqueue(frameSpec, kernel);
-            onHost::wait(queue);
-            auto const end = std::chrono::steady_clock::now();
-            double const us = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() * 1e-3;
-            samples.push_back(us);
-            std::printf("  iteration %d: %.3f us\n", i, us);
-        }
-        std::sort(samples.begin(), samples.end());
-        double const median = samples.empty() ? 0.0 : samples[samples.size() / 2u];
-        return median;
+        onHost::wait(queue);
+        auto const end = std::chrono::steady_clock::now();
+        auto const totalMs = std::chrono::duration<double, std::milli>(end - start).count();
+        return totalMs / static_cast<double>(repeat);
     }
 
     auto example(auto const deviceSpec, auto const exec, int rows, int cols, int maxIterations, int repeat) -> int
@@ -138,12 +167,10 @@ namespace mandelbrotAlpaka
         auto const frameSpec = makeFrameSpec(device, exec, static_cast<uint32_t>(rows), static_cast<uint32_t>(cols));
         KernelBundle const kernel{MandelKernel{}, dOut, params, rows, cols};
 
-        double const medianUs = timeKernel(queue, frameSpec, kernel, repeat);
-        std::printf("Mandelbrot kernel runtime median: %.3f us\n", medianUs);
-        // The upstream HeCBench reference logs the average kernel time in milliseconds and the
-        // vendored test metadata matches that field. Report the median sample in the same field so
-        // the benchmark harness contract is preserved.
-        std::printf("Average kernel execution time: %.6f ms\n", medianUs * 1.0e-3);
+        double const meanMs = timeKernel(queue, frameSpec, kernel, repeat);
+        // The upstream HeCBench reference logs the arithmetic mean kernel time in
+        // milliseconds and the vendored test metadata matches that field.
+        std::printf("Average kernel execution time: %.6f ms\n", meanMs);
 
         onHost::memcpy(queue, hOut, dOut);
         onHost::wait(queue);
@@ -158,22 +185,62 @@ auto main(int argc, char* argv[]) -> int
     int cols = mandel::defaultColSize;
     int maxIterations = mandel::defaultMaxIterations;
     int repeat = mandel::defaultRepetitions;
+    bool allBackends = false;
 
-    if(int const ret = mandel::parseCmd(argc, argv, rows, cols, maxIterations, repeat))
+    if(int const ret = mandel::parseCmd(argc, argv, rows, cols, maxIterations, repeat, allBackends))
         return ret;
 
     using namespace alpaka;
 
-    return onHost::executeForEachIfHasDevice(
-        [=](auto const& backend)
-        {
-            return mandelbrotAlpaka::example(
-                onHost::makeDeviceSpec(backend),
-                getExecutor(backend),
-                rows,
-                cols,
-                maxIterations,
-                repeat);
-        },
-        onHost::allBackends(onHost::enabledDeviceSpecs, exec::enabledExecutors));
+    auto const backends = onHost::allBackends(onHost::enabledDeviceSpecs, exec::enabledExecutors);
+    auto runBackend = [=](auto const& backend)
+    {
+        return mandelbrotAlpaka::example(
+            onHost::makeDeviceSpec(backend),
+            getExecutor(backend),
+            rows,
+            cols,
+            maxIterations,
+            repeat);
+    };
+
+    if(allBackends)
+    {
+        return onHost::executeForEachIfHasDevice(runBackend, backends);
+    }
+
+    // The harness matches every "Average kernel execution time" line and sums
+    // them, so the default run must use exactly one backend/executor. Prefer a
+    // non-host GPU, then the host OpenMP executor, then the host serial
+    // executor; fall back to the first available backend.
+    auto const isGpu = [](auto const& backend)
+    {
+        using DeviceKind = ALPAKA_TYPEOF(getDeviceKind(backend));
+        return !std::is_same_v<DeviceKind, deviceKind::Cpu>
+            && !std::is_same_v<DeviceKind, deviceKind::NumaCpu>;
+    };
+    auto const isHostOmp = [](auto const& backend)
+    {
+        return std::is_same_v<ALPAKA_TYPEOF(getApi(backend)), api::Host>
+            && std::is_same_v<ALPAKA_TYPEOF(getExecutor(backend)), exec::CpuOmpBlocks>;
+    };
+    auto const isHostSerial = [](auto const& backend)
+    {
+        return std::is_same_v<ALPAKA_TYPEOF(getApi(backend)), api::Host>
+            && std::is_same_v<ALPAKA_TYPEOF(getExecutor(backend)), exec::CpuSerial>;
+    };
+    auto const anyBackend = [](auto const&) { return true; };
+
+    constexpr int skipped = mandelbrotAlpaka::backendSkipped;
+    if(int const ret = mandelbrotAlpaka::runFirstAvailable(backends, isGpu, runBackend); ret != skipped)
+        return ret;
+    if(int const ret = mandelbrotAlpaka::runFirstAvailable(backends, isHostOmp, runBackend); ret != skipped)
+        return ret;
+    if(int const ret = mandelbrotAlpaka::runFirstAvailable(backends, isHostSerial, runBackend); ret != skipped)
+        return ret;
+    if(int const ret = mandelbrotAlpaka::runFirstAvailable(backends, anyBackend, runBackend); ret != skipped)
+        return ret;
+
+    std::cerr << "Error: no supported backend is available.\n";
+    return EXIT_FAILURE;
 }

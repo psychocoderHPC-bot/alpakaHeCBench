@@ -13,7 +13,7 @@ add_hecbench_benchmark(
     # the CMake-compatible equivalent of the upstream Python regex
     # '(?:Average kernel execution time: )([0-9.+-e]+)(?: ms)'.
     TEST_REGEX "Average kernel execution time: [0-9.+-e]+ ms"
-    # The upstream argument runs 1000 measured repetitions with the port defaults;
-    # allow enough time for the serial CPU executor.
-    TEST_TIMEOUT 1200
+    # The upstream argument runs 1000 measured repetitions with the reference
+    # defaults (1080 x 1920 x 100); the timeout matches the benchmark metadata.
+    TEST_TIMEOUT 300
 )

@@ -62,11 +62,14 @@
 
 namespace mandel
 {
-    // Defaults replicate the HeCBench reference (mandel.hpp).
-    constexpr int defaultRowSize = 1024;
-    constexpr int defaultColSize = 1024;
-    constexpr int defaultMaxIterations = 1000;
-    constexpr int defaultRepetitions = 5;
+    // Defaults replicate the HeCBench reference (src/mandelbrot-*/mandel.hpp):
+    // row_size = 1080, col_size = 1920, max_iterations = 100. The reference
+    // program takes only the repetition count on the command line; the harness
+    // passes 1000.
+    constexpr int defaultRowSize = 1080;
+    constexpr int defaultColSize = 1920;
+    constexpr int defaultMaxIterations = 100;
+    constexpr int defaultRepetitions = 1000;
 
     // The reference defines the block shape as 16 x 16; kept for documentation parity.
     constexpr int threadsPerBlockX = 16;

@@ -39,15 +39,22 @@ single portable alpaka kernel.
 The program accepts named options and the upstream positional repetition form:
 
 ```
-./mandelbrot [<repeat>] [--rows <n>] [--cols <n>] [--max-iter <n>] [--repeat <n>]
+./mandelbrot [<repeat>] [--rows <n>] [--cols <n>] [--max-iter <n>] [--repeat <n>] [--all-backends]
 ```
 
-The defaults are `rows = 1024`, `cols = 1024`, `max_iterations = 1000` and
-`repeat = 5`. The upstream harness passes the repetition count as `1000`, which
-is also the registered CTest argument. One warm-up enqueue is discarded; the
-timed value is the median of the measured samples. The program prints the
-upstream-compatible field `Average kernel execution time: <value> ms`; CTest
-matches that line. No timing value is asserted.
+The defaults match the HeCBench reference: `rows = 1080`, `cols = 1920`,
+`max_iterations = 100` and `repeat = 1000`. The upstream harness passes the
+repetition count as `1000`, which is also the registered CTest argument. Timing
+matches the reference protocol: no warm-up, one timer around all `repeat`
+kernel launches, one wait, and the arithmetic mean per launch reported in
+milliseconds. Validation runs after the timed region.
+
+By default the program selects exactly one backend/executor: a non-host GPU if
+one is available, otherwise the host OpenMP executor, otherwise the host serial
+executor. This guarantees one `Average kernel execution time: <value> ms` line
+for the harness. Pass `--all-backends` to run every enabled combination; that
+mode prints one timing line per combination and is not suitable for the
+harness. No timing value is asserted.
 
 Validation is performed on the host and fails the process with a non-zero exit
 code:
@@ -88,7 +95,7 @@ Host CPU, serial executor, Release:
 ```bash
 cmake --preset cpu-serial -Dalpaka_COMPILE_PEDANTIC=ON .
 cmake --build build/cpu-serial --target mandelbrot-alpaka -j
-./build/cpu-serial/bin/alpaka/mandelbrot --rows 1024 --cols 1024 --max-iter 1000 --repeat 5
+./build/cpu-serial/bin/alpaka/mandelbrot 1000
 ```
 
 CUDA (the default target architecture is `sm_80`; set
@@ -100,8 +107,8 @@ cmake --build build/cuda --target mandelbrot-alpaka -j
 ./build/cuda/bin/alpaka/mandelbrot 1000
 ```
 
-The executable runs every enabled backend/executor and reports each one
-separately.
+The executable runs one selected backend/executor by default, as described
+above.
 
 ## Test
 
