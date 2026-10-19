@@ -33,6 +33,22 @@ path = "src/scripts/benchmarks/subset.json"
 SPDX-FileCopyrightText = ["2020 Argonne National Laboratory (Zheming Jin)", "2020- Oak Ridge National Laboratory (Zheming Jin)"]
 SPDX-License-Identifier = "BSD-3-Clause"
 
+# Vendored HPL 2.3 sources, datafiles, and upstream license (BSD-4-Clause).
+[[annotations]]
+path = "src/hpl-alpaka/src/hpl-2.3/**"
+SPDX-FileCopyrightText = "2000-2008 The HPL Authors"
+SPDX-License-Identifier = "BSD-4-Clause"
+
+[[annotations]]
+path = "src/hpl-alpaka/datafiles/**"
+SPDX-FileCopyrightText = "2000-2008 The HPL Authors"
+SPDX-License-Identifier = "BSD-4-Clause"
+
+[[annotations]]
+path = "src/hpl-alpaka/LICENSE.md"
+SPDX-FileCopyrightText = "2000-2008 The HPL Authors"
+SPDX-License-Identifier = "BSD-4-Clause"
+
 # External submodule: never vendored, keep its own metadata.
 [[annotations]]
 path = "extern/alpaka"

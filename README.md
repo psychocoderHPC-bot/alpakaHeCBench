@@ -25,8 +25,12 @@ verbatim so the upstream harness runs directly against this tree.
 - alpaka pinned at commit
   [`b7d339d07056a9a2a6c4051cc3927157bc5f0d51`](https://github.com/alpaka-group/alpaka/commit/b7d339d07056a9a2a6c4051cc3927157bc5f0d51)
   (`dev_v3.x`), wired as the `extern/alpaka` submodule.
-- The port follows the HeCBench `cross` benchmark; its logic is re-derived, not
-  vendored. The upstream license text is kept in `src/cross-alpaka/LICENSE`.
+- The `cross` port re-derives the benchmark logic. The upstream license text is
+  kept in `src/cross-alpaka/LICENSE`.
+- `src/hpl-alpaka` vendors the HPL 2.3 tree from ORNL/HeCBench
+  (`fd01f79b`, BSD-4-Clause) and replaces its CUDA BLAS shim with an
+  alpakaVendor-based one. alpakaVendor is pinned at
+  `ccf128e3c1ff85ae0b1fc5d9b08fd9bc44f02aeb` in `extern/alpakaVendor`.
 
 ## Prerequisites
 
@@ -110,6 +114,25 @@ to a GPU with a lower compute capability. Use
 | benchmark | native HeCBench models | this repo (alpaka) |
 | --- | --- | --- |
 | `cross` | cuda, hip, omp, sycl | alpaka (single source) |
+| `hpl` | cuda, hip, sycl | alpaka (make/MPI, `src/hpl-alpaka`) |
+
+## HPL
+
+HPL is a make/MPI build, not a single-source alpaka target. It lives in
+`src/hpl-alpaka` and is registered only when `-DalpakaHeCBench_ENABLE_HPL=ON`
+is configured; the custom target and CTest test drive its Makefile. Build it
+directly with:
+
+```bash
+make -C src/hpl-alpaka BACKEND=cpu
+make -C src/hpl-alpaka BACKEND=cpu run
+```
+
+Select `BACKEND=cuda`, `hip` or `sycl` for the device backends. The first
+version routes the dominant GEMM through alpakaVendor and keeps triangular
+solve (TRSM) on the host. See `src/hpl-alpaka/README.md` for requirements,
+backend-specific CMake arguments, the numeric self-test and the 1024/2048
+input decks.
 
 ## Native comparison
 
