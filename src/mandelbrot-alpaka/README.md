@@ -66,10 +66,15 @@ code:
 
 The float and double references may classify a small fraction of boundary
 pixels differently because the escape-time map is chaotic at the parabolic
-boundary. The check allows a fixed relative tolerance, the same value used by
-the HeCBench reference `Verify`, and always reports the mismatch counts. The
-exact float comparison, the interior spot check and the finite/range guards are
-independent hard checks.
+boundary. The kernel shares the float iteration source with the faithful float
+reference, but host and device code generation can still round a last bit
+differently (for example through FMA contraction), so they are not bit-exactly
+identical on every backend. Observed boundary mismatch at `1080 x 1920 x 100`
+is 0.075 % on CPU OpenMP and 0.107 % on V100 CUDA against the float reference,
+and about 0.14 % against the double reference. Both checks use the fixed
+relative tolerance of the HeCBench reference `Verify` (0.05) and always report
+the mismatch counts. The per-pixel float comparison, the interior spot check
+and the finite/range guards are independent checks.
 
 ## Provenance
 

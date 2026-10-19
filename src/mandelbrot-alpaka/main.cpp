@@ -15,8 +15,9 @@
  *
  * This port follows the protocol: one portable kernel source, compiled unchanged for the host CPU
  * and for CUDA GPUs. There is no backend branch and no native CUDA/HIP/OpenMP kernel. The sampling
- * grid and the iteration body are shared with the host reference in `helper.hpp`, so the reference
- * and the kernel are arithmetically identical.
+ * grid and the iteration body are shared with the host reference in `helper.hpp`; host and device
+ * code generation can still differ in the last bit, so validation uses both the float and double
+ * references within the HeCBench tolerance.
  */
 
 #include <alpaka/alpaka.hpp>

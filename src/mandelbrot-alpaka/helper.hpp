@@ -45,7 +45,9 @@
  * `ComplexF`, `MandelParameters`, the row/column defaults and the scaling functions are a faithful
  * copy of the HeCBench reference `src/mandelbrot-cuda/mandel.hpp` (MIT, Copyright (c) 2019 Intel
  * Corporation), with the CUDA specific annotations removed. The alpaka kernel and the "faithful"
- * host reference go through exactly the same float arithmetic.
+ * host reference share the same float iteration source. Device and host code generation can still
+ * round a last bit differently (for example through FMA contraction), so the two are not
+ * bit-exactly identical on every backend.
  *
  * A second, independent host reference in `double` precision is provided for verification. It uses
  * the same sampling grid but higher precision arithmetic, so it is not bit-identical to the float
@@ -207,14 +209,14 @@ namespace mandel
      *
      * Tolerance rationale. The escape-time map is chaotic on the parabolic boundary between the
      * interior and the exterior: a last-bit difference in the float iteration changes when a pixel
-     * crosses the escape radius near `|c| ~ 1/2`. The committed kernel and the faithful reference
-     * use the identical `float` arithmetic, so they agree bit-exactly; the independent `double`
-     * reference differs on a small set of boundary pixels. Measured on the host with a `double`
-     * evaluation of the same grid, the classification mismatch is 0.50 % at
-     * `1024 x 1024 x 1000`, 0.68 % at `1080 x 1920 x 1000` and 0.75 % at `1080 x 1920 x 10000`.
-     * A tolerance of 5 % (the value used by the HeCBench reference `Verify`) is therefore ~7x
-     * above the observed float/double divergence and still catches any real defect, which would
-     * affect whole regions, not only the boundary. The mismatch ratio is printed for every run.
+     * crosses the escape radius near `|c| ~ 1/2`. The kernel and the faithful float reference share
+     * the iteration source, but device and host code generation can still differ in the last bit or
+     * in FMA contraction, so they do not agree bit-exactly on every backend. Observed on the parity
+     * campaign at `1080 x 1920 x 100`, the float-reference mismatch is 0.075 % (CPU OpenMP) and
+     * 0.107 % (V100 CUDA); the independent `double` reference differs on a small set of boundary
+     * pixels as well. Both are far below the 0.05 (5 %) bound used by the HeCBench reference
+     * `Verify`, which still catches any real defect because a defect would affect whole regions,
+     * not only the boundary. The mismatch ratios are printed for every run.
      *
      * The tolerance is a correctness bound on a chaotic map, never widened to hide a bug: the exact
      * float-reference comparison, the spot check and the finite/range guards are independent
