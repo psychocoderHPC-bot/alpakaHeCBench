@@ -142,5 +142,10 @@ The upstream harness can run the port through the vendored tooling:
 python3 tools/hecbench -v run heat2d --model alpaka
 ```
 
-`compile` and `run` phases are supported; this repository does not ship measured
-results, plots or comparison tables.
+`compile` and `run` phases are supported. Measured results, plots and comparison
+tables live under `docs/`; see [docs/PERFORMANCE.md](docs/PERFORMANCE.md).
+
+## Performance
+
+Measured CUDA, AMD HIP and Intel SYCL results with method and caveats:
+[docs/PERFORMANCE.md](docs/PERFORMANCE.md).
