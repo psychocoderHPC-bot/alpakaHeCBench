@@ -182,7 +182,8 @@ namespace reverseAlpaka
         {
             auto const res = runOnce(false);
             samples.push_back(res.first);
-            printf("repetition %d: total kernel execution time %.6f (s)\n", r, res.first);
+            // Per-repetition samples are diagnostics; stdout carries exactly one timing result.
+            fprintf(stderr, "repetition %d: total kernel execution time %.6f (s)\n", r, res.first);
         }
 
         std::vector<double> sorted = samples;

@@ -78,7 +78,8 @@ are inside the timed region; allocation, host/device copies and validation stay 
 The median is the benchmark metric of this port, not the single ORNL kernel time. ORNL launches the
 whole test-case loop once and prints its total; this port discards a validated warm-up and reports
 the median of `repeat` measured totals. Campaign results are therefore comparable across alpaka
-backends, but the absolute value is not byte-for-byte the ORNL metric.
+backends, but the absolute value is not byte-for-byte the ORNL metric. Per-repetition samples go to
+stderr, so stdout carries exactly one timing line per selected backend.
 
 ## Provenance
 
