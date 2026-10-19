@@ -12,13 +12,20 @@ CUDA GPU. There is no backend branch and no native CUDA/HIP/OpenMP kernel.
 
 ## What it computes
 
-The benchmark runs the two kernels of the HeCBench `relu` program, which are derived from
-TensorFlow:
+The benchmark runs the four variants of the HeCBench `relu` program, which are derived from
+TensorFlow. All four run as alpaka kernels on the same input size and repeat count:
 
-- **ReluGrad (fp16)**: `(feature > 0) ? gradient : 0`, evaluated on binary16 bit patterns with
-  alpaka's SIMD facilities.
-- **Relu (packed int8x4)**: `max(value, 0)` applied independently to the four signed bytes of
-  every `int32` word.
+| variant | operation |
+|---|---|
+| `ReluGrad_impl1` | fp16 `(feature > 0) ? gradient : 0`, one SIMD register width per invocation |
+| `ReluGrad_impl2` | the same operation, eight fp16 (four `half2` packages) and one 16 byte vector load/store per invocation |
+| `Relu_impl1` | `max(value, 0)` applied independently to the four signed bytes of every `int32` word, one word per thread |
+| `Relu_impl2` | the same byte-wise maximum as a portable packed int8x4 SIMD operation, equivalent to `__vmaxs4` |
+
+The fp16 variants evaluate the operation on binary16 bit patterns. `ReluGrad_impl2` uses an
+`onAcc::SimdAlgo` concurrency budget of `8 * sizeof(uint16_t)` and handles the tail with the SIMD
+algorithm's scalar remainder path. `Relu_impl2` runs `onAcc::SimdAlgo` over an `int8_t` byte span
+with a four byte concurrency budget, so one invocation consumes exactly one `int32` word.
 
 Data generation matches the HeCBench references: `std::mt19937` seeded with `19937`, the same
 number and order of fp16 draws before the packed integers, and a fixed gradient of 1.
@@ -26,19 +33,34 @@ number and order of fp16 draws before the packed integers, and a fixed gradient 
 ## Parameters
 
 `--size <count>` and `--repeat <n>` select the number of elements and the measured iterations.
-Defaults are `10000000` and `100`. The native HeCBench positional form `<count> <repeat>` is
-accepted as well; named and positional arguments cannot be mixed. One warm-up iteration runs
-before the measured iterations, and the reported value is the median of the samples.
+Defaults are `10000000` and `100`, the campaign values. The native HeCBench positional form
+`<count> <repeat>` is accepted as well; named and positional arguments cannot be mixed. Every
+variant is timed with the same arguments.
+
+Timing follows the HeCBench scope. Each variant runs one discarded warm-up launch, then `repeat`
+launches are enqueued back-to-back on a non-blocking queue under one timer and the queue is
+synchronized once. The printed value is the average `total_us / repeat`. Allocation, host/device
+copies and validation are outside the timed region. The output has one ORNL-compatible timing line
+per variant:
+
+```text
+Average execution time of ReluGrad_impl1 Kernel: <value> (us)
+Average execution time of ReluGrad_impl2 Kernel: <value> (us)
+Average execution time of Relu_impl1 Kernel : <value> (us)
+Average execution time of Relu_impl2 Kernel: <value> (us)
+```
 
 ## What the test validates
 
-`helper.hpp` contains an independent host reference. ReluGrad is recomputed in double precision
-and compared with a tolerance of `1e-3`; NaN and Inf results fail. The packed-int Relu output is
-compared bit-exactly against a per-byte recomputation. Both checks print `PASSED` or `FAILED`, and
-any mismatch makes the process exit non-zero.
+`helper.hpp` contains an independent host reference. After each variant, its device output is
+copied back and validated separately. ReluGrad is recomputed in double precision and compared with
+the ORNL tolerance of `1e-3`; NaN and Inf results fail. The packed-int Relu output is compared
+bit-exactly (byte-wise `memcmp`) against the per-byte reference. Each variant prints
+`ReluGrad_impl1 PASS`, `ReluGrad_impl2 PASS`, `Relu_impl1 PASS` or `Relu_impl2 PASS`; any mismatch
+makes the process exit non-zero.
 
-The CTest entry runs `relu-alpaka --size 4096 --repeat 2` and requires the ReluGrad timing line in
-stdout. A validation failure or a missing line fails the test.
+The CTest entry runs `relu-alpaka 4096 2` and matches the four timing lines in stdout. A
+validation failure or a missing line fails the test.
 
 ## Provenance
 
@@ -59,13 +81,13 @@ CPU serial, Release:
 ```bash
 cmake --preset cpu-serial -Dalpaka_COMPILE_PEDANTIC=ON .
 cmake --build build/cpu-serial --target relu-alpaka -j
-./build/cpu-serial/bin/alpaka/relu --size 4096 --repeat 2
+./build/cpu-serial/bin/alpaka/relu 4096 2
 ```
 
-The native positional form is equivalent:
+The named form is equivalent:
 
 ```bash
-./build/cpu-serial/bin/alpaka/relu 4096 2
+./build/cpu-serial/bin/alpaka/relu --size 4096 --repeat 2
 ```
 
 CUDA, default `sm_80`:
@@ -73,7 +95,7 @@ CUDA, default `sm_80`:
 ```bash
 cmake --preset cuda -Dalpaka_COMPILE_PEDANTIC=ON .
 cmake --build build/cuda --target relu-alpaka -j
-./build/cuda/bin/alpaka/relu --size 4096 --repeat 2
+./build/cuda/bin/alpaka/relu 4096 2
 ```
 
 ## Test
@@ -82,8 +104,8 @@ cmake --build build/cuda --target relu-alpaka -j
 ctest --test-dir build/cpu-serial -R relu-alpaka --output-on-failure
 ```
 
-The vendored metadata in `src/scripts/benchmarks/subset.json` uses the same short arguments, so
-the upstream tooling can run the port:
+The vendored metadata in `src/scripts/benchmarks/subset.json` uses the campaign arguments
+`10000000 100`, so the upstream tooling can run the port:
 
 ```bash
 python3 tools/hecbench -v run relu --model alpaka

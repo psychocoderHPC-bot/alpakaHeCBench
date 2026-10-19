@@ -163,7 +163,6 @@ namespace relu
                 break;
             }
         }
-        printf("Relu (packed int8x4) verification %s\n", error ? "FAILED" : "PASSED");
         return error;
     }
 
@@ -202,7 +201,6 @@ namespace relu
                 break;
             }
         }
-        printf("ReluGrad (fp16) verification %s\n", error ? "FAILED" : "PASSED");
         return error;
     }
 

@@ -1002,12 +1002,10 @@
         ]
     ],
     "relu": [
-        "(?:Relu(?:Grad)? \\(.*\\) kernel runtime median: )([0-9.+-e]+)(?: us)",
+        "Average execution time of (?:ReluGrad|Relu)_impl[12] Kernel ?: ([0-9.+-e]+) \\(us\\)",
         [
-            "--size",
-            "4096",
-            "--repeat",
-            "2"
+            "10000000",
+            "100"
         ]
     ],
     "rsc": [

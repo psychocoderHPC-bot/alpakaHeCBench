@@ -2341,8 +2341,8 @@ relu:
   categories: [algorithms]
   models: [alpaka, cuda, hip, sycl]
   test:
-    regex: '(?:Relu(?:Grad)? \(.*\) kernel runtime median: )([0-9.+-e]+)(?: us)'
-    args: ["--size", "4096", "--repeat", "2"]
+    regex: 'Average execution time of (?:ReluGrad|Relu)_impl[12] Kernel ?: ([0-9.+-e]+) \(us\)'
+    args: ["10000000", "100"]
     timeout: 300
 
 remap:
