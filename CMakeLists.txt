@@ -16,6 +16,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 option(alpakaHeCBench_ENABLE_CUDA "Enable the CUDA backend (onAcc + onHost in one translation unit)" OFF)
+option(alpakaHeCBench_ENABLE_HPL "Register the make/MPI based HPL benchmark target" OFF)
+set(alpakaHeCBench_HPL_BACKEND "cpu" CACHE STRING "Backend for the HPL BLAS shim: cpu, cuda, hip or sycl")
+set_property(CACHE alpakaHeCBench_HPL_BACKEND PROPERTY STRINGS cpu cuda hip sycl)
 option(alpakaHeCBench_USE_SOURCE_TREE "Use alpaka from extern/alpaka instead of an installed package" ON)
 
 # Fast-math passthrough. The native HeCBench cross references are built with
@@ -55,3 +58,9 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 include(BenchmarkMacros)
 
 add_subdirectory(src/cross-alpaka)
+
+if(alpakaHeCBench_ENABLE_HPL)
+    # HPL is make/MPI based and builds alpakaVendor as a separate CMake project;
+    # it is intentionally not wired through add_hecbench_benchmark().
+    add_subdirectory(src/hpl-alpaka)
+endif()

@@ -642,6 +642,10 @@
         "(?:Average kernel execution time )([0-9.+-e]+)(?: \\(us\\))",
         ["512", "8", "5000", "../data/hotspot3D/power_512x8", "../data/hotspot3D/temp_512x8", "output.out"]
     ],
+    "hpl": [
+        "([0-9]+ tests completed and passed residual checks)",
+        []
+    ],
     "hwt1d": [
         "(?:Average device offload time )([0-9.+-e]+)(?: \\(s\\))",
         [
