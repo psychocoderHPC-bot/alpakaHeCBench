@@ -101,6 +101,17 @@ cmake --build build/cuda --target matrix-rotate-alpaka -j
 
 The binary runs once per available backend. Set `CUDA_VISIBLE_DEVICES=<idx>` to pin a GPU.
 
+The `Makefile` wraps the same configure/build step for the upstream HeCBench tooling. It builds a
+`Release` binary, copies it to `./main` and defaults to the reference arguments:
+
+```bash
+make -C src/matrix-rotate-alpaka
+./main 5000 100
+```
+
+Pass `make HOST_CXX_FLAGS=` for a portable binary, or `make CUDA_ARCH=<n>` / `make ARCH=<n>` to
+target a different GPU.
+
 ## Test
 
 The CTest entry uses the upstream benchmark arguments `5000 100` and matches the per-rotation
@@ -117,5 +128,7 @@ The test fails when validation fails or the expected timing line is missing.
 The measured section brackets `repeat` consecutive kernel launches with one device
 synchronization, matching the HeCBench reference. One full `repeat`-batch runs as warm-up first.
 The reported metric is the median per-rotation time in microseconds, computed over seven measured
-repetitions and divided by `repeat`. Allocation, host-device copies and the validation run stay
-outside the timed section.
+repetitions and divided by `repeat`. The run also prints the native HeCBench line
+`Average kernel execution time: %f (s)` with the same median converted to seconds, so the vendored
+harness regex in `subset.json` and `benchmarks.yaml` captures a result. Allocation, host-device
+copies and the validation run stay outside the timed section.

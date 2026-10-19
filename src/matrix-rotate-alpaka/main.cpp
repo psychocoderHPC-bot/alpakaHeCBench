@@ -232,10 +232,15 @@ namespace matrixRotateAlpaka
         {
             double const median = timeRotations(queue, frameSpec, kernel, repeat, 7);
             printf("median kernel time: %.4f us/rotation\n", median);
+            // Native HeCBench timing contract: seconds per rotation. The
+            // harness regex in subset.json matches this line, so report the
+            // measured median converted from microseconds here.
+            printf("Average kernel execution time: %f (s)\n", median * 1e-6);
         }
         else
         {
             printf("median kernel time: n/a (n < 2, no ring to rotate)\n");
+            printf("Average kernel execution time: 0.000000 (s)\n");
         }
 
         return validRc;
