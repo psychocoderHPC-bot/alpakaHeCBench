@@ -25,8 +25,8 @@ verbatim so the upstream harness runs directly against this tree.
 - alpaka pinned at commit
   [`b7d339d07056a9a2a6c4051cc3927157bc5f0d51`](https://github.com/alpaka-group/alpaka/commit/b7d339d07056a9a2a6c4051cc3927157bc5f0d51)
   (`dev_v3.x`), wired as the `extern/alpaka` submodule.
-- The port follows the HeCBench `cross` benchmark; its logic is re-derived, not
-  vendored. The upstream license text is kept in `src/cross-alpaka/LICENSE`.
+- The port logic is re-derived, not vendored. The upstream HeCBench license text
+  is kept in `src/cross-alpaka/LICENSE`.
 
 ## Prerequisites
 
@@ -110,6 +110,7 @@ to a GPU with a lower compute capability. Use
 | benchmark | native HeCBench models | this repo (alpaka) |
 | --- | --- | --- |
 | `cross` | cuda, hip, omp, sycl | alpaka (single source) |
+| `popcount` | cuda, hip, omp, sycl | alpaka (single source) |
 
 ## Native comparison
 

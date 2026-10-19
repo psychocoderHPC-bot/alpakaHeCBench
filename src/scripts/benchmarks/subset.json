@@ -995,6 +995,13 @@
             "100"
         ]
     ],
+    "popcount": [
+        "Average kernel execution time \\(pc[1-6]\\): ([0-9.+-e]+) \\(us\\)",
+        [
+            "16777216",
+            "1000"
+        ]
+    ],
     "projectile": [
         "(?:Average kernel execution time: )([0-9.+-e]+)(?: \\(s\\))",
         [
