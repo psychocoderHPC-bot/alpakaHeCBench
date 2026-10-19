@@ -20,8 +20,9 @@ namespace matrixRotate
 {
     /** Fill a square matrix with the HeCBench initialization `m[i][j] = i * n + j`.
      *
-     * Every entry is a non-negative integer below `n * n`, so for realistic side lengths the value is exactly
-     * representable as `float` and the in-place rotation, which is a pure permutation, is exact.
+     * The integer value is converted to `float`, which rounds entries above 2^24, so the input is not always
+     * exactly representable. The benchmark and the reference both start from this same rounded `float` input, and
+     * the in-place rotation is a pure permutation, so it stays exact.
      */
     inline void initMatrix(std::vector<float>& matrix, int n)
     {
@@ -34,9 +35,9 @@ namespace matrixRotate
     /** Independent, double-precision in-place 90-degree clockwise rotation.
      *
      * This reproduces the HeCBench ring-by-ring corner swap scheme (`first = layer`, `last = n - 1 - layer`),
-     * but runs in `double` in a plain host loop with no parallelism. It is the golden reference: because the
-     * operation only permutes entries, the alpaka result must match the double reference entry for entry after
-     * converting back to `float`.
+     * but runs in `double` in a plain host loop with no parallelism. It is the golden reference: the input is
+     * seeded from the same rounded `float` values as the benchmark, and because the operation only permutes
+     * entries, the alpaka result must match the double reference entry for entry.
      */
     inline void hostRotate(std::vector<double>& matrix, int n)
     {
@@ -72,9 +73,10 @@ namespace matrixRotate
 
     /** Exact comparison of the produced float matrix against the double golden matrix.
      *
-     * The reference and the benchmark perform only permutations of exactly representable integer values, so the
-     * comparison is bit-exact: the tolerance is zero. A nonzero finite tolerance would be unjustified and could
-     * hide a wrong addressing scheme. Non-finite values are always reported and fail the check.
+     * The reference and the benchmark start from the same rounded `float` input and perform only permutations of
+     * those values, so the comparison is bit-exact: the tolerance is zero. A nonzero finite tolerance would be
+     * unjustified and could hide a wrong addressing scheme. Non-finite values are always reported and fail the
+     * check.
      *
      * @return EXIT_SUCCESS when the matrices match exactly, EXIT_FAILURE otherwise.
      */

@@ -62,14 +62,15 @@ arguments print an error to stderr and exit non-zero. `--help` prints the usage 
 
 ## Validation
 
-`helper.hpp` provides an independent host reference. It fills the input exactly like the reference,
-applies the ring swap sequentially in `double` without alpaka code, and compares the produced
-`float` matrix entry by entry.
+`helper.hpp` provides an independent host reference. It seeds the golden matrix from the same initial
+`float` input as the benchmark, applies the ring swap sequentially in `double` without alpaka code,
+and compares the produced `float` matrix entry by entry.
 
-The comparison is bit-exact. Every entry is a non-negative integer below `n * n`, so it is exactly
-representable as `float` for realistic sizes, and a rotation is a pure permutation. The tolerance is
-therefore zero. Non-finite outputs are always reported and fail the check. The process exits
-non-zero when validation fails.
+The comparison is bit-exact. The initialization `m[i][j] = i * n + j` is rounded when stored as
+`float` (for `n = 5000`, values above `2^24` are not exactly representable), but the benchmark and
+the golden start from the identical rounded values, and a rotation is a pure permutation. The
+tolerance is therefore zero. Non-finite outputs are always reported and fail the check. The process
+exits non-zero when validation fails.
 
 ## Build and run
 
