@@ -9,8 +9,8 @@
  * HeCBench code base.
  *
  * The parser accepts the native HeCBench positional form `./main <iterations>` and the named form
- * `--iterations <n> --length <n> --repeat <n>`. It uses only the C++ standard library, so the
- * benchmark does not depend on Catch2.
+ * `--iterations <n> --length <n> --repeat <n> [--all-backends]`. It uses only the C++ standard
+ * library, so the benchmark does not depend on Catch2.
  */
 
 #include <cerrno>
@@ -65,22 +65,25 @@ namespace reverse
         inline void printUsage(char const* program)
         {
             std::cerr << "Usage: " << program
-                      << " [<iterations>] [--iterations <n>] [--length <n>] [--repeat <n>]\n";
+                      << " [<iterations>] [--iterations <n>] [--length <n>] [--repeat <n>]"
+                         " [--all-backends]\n";
         }
     } // namespace detail
 
     /** Parse the command line.
      *
      * Accepts the HeCBench positional form (`./main <iterations>`) and the named form. Named options
-     * take precedence when present.
+     * take precedence when present. `--all-backends` opts into running every enabled backend and
+     * executor; without it the benchmark selects exactly one backend and executor.
      *
      * @return `EXIT_SUCCESS` when the arguments are valid, otherwise `EXIT_FAILURE`.
      */
-    inline int parseCmd(int argc, char* argv[], int& iterations, int& length, int& repeat)
+    inline int parseCmd(int argc, char* argv[], int& iterations, int& length, int& repeat, bool& allBackends)
     {
         iterations = defaultIterations;
         length = defaultLength;
         repeat = defaultRepeat;
+        allBackends = false;
 
         // Consume the HeCBench positional form `./main <iterations>` before option parsing.
         if(argc == 2 && detail::allDigits(argv[1]))
@@ -100,6 +103,12 @@ namespace reverse
             {
                 detail::printUsage(argv[0]);
                 return EXIT_SUCCESS;
+            }
+
+            if(arg == "--all-backends")
+            {
+                allBackends = true;
+                continue;
             }
 
             if(arg.starts_with("--"))
