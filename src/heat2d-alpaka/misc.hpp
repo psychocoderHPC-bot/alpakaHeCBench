@@ -23,8 +23,8 @@ namespace heat2d
     constexpr int defaultLx = 4096;
     constexpr int defaultLy = 4096;
     constexpr int defaultIters = 1000;
-    //! Number of measured timed runs; the HeCBench reference reports one value per invocation.
-    constexpr int defaultRepeat = 5;
+    //! Number of measured timed runs; one matches the HeCBench reference's single value per invocation.
+    constexpr int defaultRepeat = 1;
 
     //! Benchmark configuration handed to the example function.
     struct Config
@@ -33,6 +33,8 @@ namespace heat2d
         int ly = defaultLy;
         int iters = defaultIters;
         int repeat = defaultRepeat;
+        //! Opt in to every enabled backend/executor; the default runs exactly one.
+        bool allBackends = false;
     };
 
     namespace detail
@@ -65,13 +67,15 @@ namespace heat2d
 
         inline void printUsage(char const* program)
         {
-            std::cout << "Usage: " << program << " [<Lx> <Ly> <niter> [<repeat>]]\n"
-                      << "       " << program << " [--lx <n>] [--ly <n>] [--iters <n>] [--repeat <n>]\n"
+            std::cout << "Usage: " << program << " [<Lx> <Ly> <niter> [<repeat>]] [--all-backends]\n"
+                      << "       " << program
+                      << " [--lx <n>] [--ly <n>] [--iters <n>] [--repeat <n>] [--all-backends]\n"
                       << "  <Lx> <Ly> <niter>  HeCBench positional form\n"
                       << "  --lx <n>           Grid size in x\n"
                       << "  --ly <n>           Grid size in y\n"
                       << "  --iters <n>        Number of heat-equation iterations\n"
                       << "  --repeat <n>       Number of measured timed runs\n"
+                      << "  --all-backends     Run every enabled backend/executor instead of one\n"
                       << "  -h, --help         Print this help\n";
         }
     } // namespace detail
@@ -89,29 +93,34 @@ namespace heat2d
         cfg = Config{};
 
         // Preserve the reference positional contract: the first three arguments are Lx, Ly and
-        // niter, with an optional fourth repeat argument.
+        // niter. An optional fourth argument selects the repeat count; the named flag may follow.
         if(argc >= 4 && detail::allDigits(argv[1]) && detail::allDigits(argv[2]) && detail::allDigits(argv[3]))
         {
             cfg.lx = std::atoi(argv[1]);
             cfg.ly = std::atoi(argv[2]);
             cfg.iters = std::atoi(argv[3]);
-            if(argc >= 5)
+            bool repeatSet = false;
+            for(int i = 4; i < argc; ++i)
             {
-                if(!detail::allDigits(argv[4]))
+                std::string_view const extra{argv[i]};
+                if(extra == "--all-backends")
                 {
-                    std::cerr << "Error: invalid positional repeat value '" << argv[4] << "'.\n";
+                    cfg.allBackends = true;
+                }
+                else if(!repeatSet && detail::allDigits(extra.data()))
+                {
+                    cfg.repeat = std::atoi(argv[i]);
+                    repeatSet = true;
+                }
+                else
+                {
+                    std::cerr << "Error: invalid positional repeat value '" << extra << "'.\n";
                     return EXIT_FAILURE;
                 }
-                cfg.repeat = std::atoi(argv[4]);
             }
-            if(argc > 5)
+            if(cfg.lx <= 0 || cfg.ly <= 0 || cfg.iters <= 0 || cfg.repeat <= 0)
             {
-                std::cerr << "Error: at most four positional arguments are accepted.\n";
-                return EXIT_FAILURE;
-            }
-            if(cfg.lx <= 0 || cfg.ly <= 0 || cfg.iters < 0 || cfg.repeat <= 0)
-            {
-                std::cerr << "Error: Lx, Ly and repeat must be greater than zero; niter must not be negative.\n";
+                std::cerr << "Error: Lx, Ly, niter and repeat must be greater than zero.\n";
                 return EXIT_FAILURE;
             }
             return EXIT_SUCCESS;
@@ -131,6 +140,12 @@ namespace heat2d
             {
                 std::cerr << "Error: unexpected positional argument '" << arg << "'.\n";
                 return EXIT_FAILURE;
+            }
+
+            if(arg == "--all-backends")
+            {
+                cfg.allBackends = true;
+                continue;
             }
 
             std::string_view name = arg;
@@ -180,9 +195,9 @@ namespace heat2d
             std::cerr << "Error: Lx and Ly must be greater than zero.\n";
             return EXIT_FAILURE;
         }
-        if(cfg.iters < 0)
+        if(cfg.iters <= 0)
         {
-            std::cerr << "Error: iters must not be negative.\n";
+            std::cerr << "Error: iters must be greater than zero.\n";
             return EXIT_FAILURE;
         }
         if(cfg.repeat <= 0)

@@ -29,29 +29,40 @@ The algorithm launches one kernel per iteration, `niter` times, and swaps the
 two field buffers after each step. A flat 1D buffer keeps the indexing
 independent of any backend pitch convention.
 
+The coefficients are stored as `float` but the division is evaluated in double
+and rounded once, matching the reference expression `sigma / (1.0 + 4.0*sigma)`.
+
 The initial field reproduces the pinned reference: `srand(123)`, then a `1` is
 stamped into pseudo-random rows and columns every 16 entries. The reference
 leaves the remaining cells uninitialised; this port zero-initialises them so the
-input is deterministic. The stencil, the periodic wrap and the coefficients are
-unchanged.
+input is deterministic. The stencil and the periodic wrap are unchanged.
 
 ## Command line
 
 The upstream positional form is
 
 ```text
-./heat2d [<Lx> <Ly> <niter> [<repeat>]]
+./heat2d [<Lx> <Ly> <niter> [<repeat>]] [--all-backends]
 ```
 
 and the named form is
 
 ```text
-./heat2d [--lx <n>] [--ly <n>] [--iters <n>] [--repeat <n>]
+./heat2d [--lx <n>] [--ly <n>] [--iters <n>] [--repeat <n>] [--all-backends]
 ```
 
-Defaults are `Lx = 4096`, `Ly = 4096`, `niter = 1000` and `repeat = 5`. Named
-options also accept `--name=value`. Invalid, missing or out-of-range values
-exit non-zero; `Lx*Ly` must fit in `int`.
+Defaults are `Lx = 4096`, `Ly = 4096`, `niter = 1000` and `repeat = 1`.
+`niter` must be at least one. Named options also accept `--name=value`.
+Invalid, missing or out-of-range values exit non-zero; `Lx*Ly` must fit in
+`int`.
+
+By default the executable runs exactly one backend/executor and prints exactly
+one `usec/iter` line. It selects the first available non-CPU accelerator (for
+example CUDA, HIP or SYCL), otherwise CPU OpenMP blocks, otherwise CPU serial.
+`NumaCpu` is skipped because it duplicates the CPU device. Pass
+`--all-backends` to run every enabled backend/executor instead; that mode prints
+one `usec/iter` line per backend, and the vendored harness sums those lines, so
+do not use it for a single reported timing.
 
 For each measured run both device buffers are reset to the initial field, the
 `niter` launches are submitted back-to-back on a non-blocking queue, and the
@@ -113,8 +124,8 @@ cmake --build build/cuda --target heat2d-alpaka -j
 ./build/cuda/bin/alpaka/heat2d 1024 1024 100
 ```
 
-The executable runs every enabled backend/executor and reports each one
-separately.
+The executable runs one backend/executor by default. Add `--all-backends` to
+run every enabled combination; each one then reports its own timing.
 
 ## Test
 

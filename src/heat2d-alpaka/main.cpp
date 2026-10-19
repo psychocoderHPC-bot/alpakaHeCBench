@@ -33,10 +33,12 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <concepts>
 #include <cstdint>
 #include <cstdio>
 #include <iostream>
 #include <limits>
+#include <type_traits>
 #include <vector>
 
 namespace heat2dAlpaka
@@ -148,9 +150,11 @@ namespace heat2dAlpaka
         int const total = Lx * Ly;
         Vec<int, 1u> const extent{total};
 
-        // Coefficients in single precision, exactly as in the pinned reference.
-        float const delta = heat2d::sigma / (1.f + 4.f * heat2d::sigma);
-        float const norm = 1.f / (1.f + 4.f * heat2d::sigma);
+        // Coefficients are stored in single precision, exactly as in the pinned reference. The
+        // division is evaluated in double and rounded once to float, matching the reference's
+        // `sigma / (1.0 + 4.0*sigma)` expression instead of rounding an intermediate float.
+        float const delta = static_cast<float>(heat2d::deltaD());
+        float const norm = static_cast<float>(heat2d::normD());
 
         std::cout << "Lx: " << Lx << std::endl;
         std::cout << "Ly: " << Ly << std::endl;
@@ -210,6 +214,94 @@ namespace heat2dAlpaka
             result[k] = hResult.data()[k];
         return heat2d::verify(init, Lx, Ly, iters, result);
     }
+
+    /** Run the first available non-CPU accelerator in @p backends.
+     *
+     * CPU and NumaCpu device kinds are ignored so that a GPU build reports the GPU rather than an
+     * enabled host fallback. @p selected records whether a backend was executed.
+     */
+    template<typename T_Backends>
+    auto runFirstAccelerator(T_Backends const& backends, heat2d::Config const& cfg, bool& selected) -> int
+    {
+        using namespace alpaka;
+        int status = EXIT_SUCCESS;
+        std::apply(
+            [&](auto const&... backend)
+            {
+                auto tryBackend = [&](auto const& candidate)
+                {
+                    if(selected)
+                        return;
+                    auto const deviceSpec = onHost::DeviceSpec{candidate};
+                    using Kind = ALPAKA_TYPEOF(deviceSpec.getDeviceKind());
+                    if constexpr(!std::same_as<Kind, deviceKind::Cpu> && !std::same_as<Kind, deviceKind::NumaCpu>)
+                    {
+                        if(onHost::makeDeviceSelector(deviceSpec).isAvailable())
+                        {
+                            status = example(deviceSpec, getExecutor(candidate), cfg);
+                            selected = true;
+                        }
+                    }
+                };
+                (tryBackend(backend), ...);
+            },
+            backends);
+        return status;
+    }
+
+    /** Run the first available CPU device with executor @p T_Executor. NumaCpu is skipped. */
+    template<typename T_Executor, typename T_Backends>
+    auto runFirstHostExecutor(T_Backends const& backends, heat2d::Config const& cfg, bool& selected) -> int
+    {
+        using namespace alpaka;
+        int status = EXIT_SUCCESS;
+        std::apply(
+            [&](auto const&... backend)
+            {
+                auto tryBackend = [&](auto const& candidate)
+                {
+                    if(selected)
+                        return;
+                    auto const deviceSpec = onHost::DeviceSpec{candidate};
+                    using Kind = ALPAKA_TYPEOF(deviceSpec.getDeviceKind());
+                    using Executor = ALPAKA_TYPEOF(getExecutor(candidate));
+                    if constexpr(std::same_as<Kind, deviceKind::Cpu> && std::same_as<Executor, T_Executor>)
+                    {
+                        if(onHost::makeDeviceSelector(deviceSpec).isAvailable())
+                        {
+                            status = example(deviceSpec, getExecutor(candidate), cfg);
+                            selected = true;
+                        }
+                    }
+                };
+                (tryBackend(backend), ...);
+            },
+            backends);
+        return status;
+    }
+
+    /** Default policy: one backend only.
+     *
+     * Prefer the first available non-host accelerator, then CPU OpenMP blocks, then CPU serial.
+     * NumaCpu is skipped because it duplicates the CPU device with a non-portable timing split.
+     */
+    auto runDefaultBackend(heat2d::Config const& cfg) -> int
+    {
+        using namespace alpaka;
+        auto const backends = onHost::allBackends(onHost::enabledDeviceSpecs, exec::enabledExecutors);
+        bool selected = false;
+        int status = runFirstAccelerator(backends, cfg, selected);
+        if(!selected)
+            status = runFirstHostExecutor<ALPAKA_TYPEOF(exec::cpuOmpBlocks)>(backends, cfg, selected);
+        if(!selected)
+            status = runFirstHostExecutor<ALPAKA_TYPEOF(exec::cpuSerial)>(backends, cfg, selected);
+        if(!selected)
+        {
+            std::cerr << "Error: no usable alpaka backend found.\n";
+            return EXIT_FAILURE;
+        }
+        return status;
+    }
 } // namespace heat2dAlpaka
 
 auto main(int argc, char* argv[]) -> int
@@ -220,8 +312,12 @@ auto main(int argc, char* argv[]) -> int
 
     using namespace alpaka;
 
-    return onHost::executeForEachIfHasDevice(
-        [=](auto const& backend)
-        { return heat2dAlpaka::example(onHost::makeDeviceSpec(backend), getExecutor(backend), cfg); },
-        onHost::allBackends(onHost::enabledDeviceSpecs, exec::enabledExecutors));
+    if(cfg.allBackends)
+    {
+        return onHost::executeForEachIfHasDevice(
+            [=](auto const& backend)
+            { return heat2dAlpaka::example(onHost::makeDeviceSpec(backend), getExecutor(backend), cfg); },
+            onHost::allBackends(onHost::enabledDeviceSpecs, exec::enabledExecutors));
+    }
+    return heat2dAlpaka::runDefaultBackend(cfg);
 }
