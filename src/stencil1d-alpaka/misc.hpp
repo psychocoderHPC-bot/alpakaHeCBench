@@ -16,6 +16,7 @@
 #include <cstring>
 #include <iostream>
 #include <string>
+#include <vector>
 
 namespace stencil1d
 {
@@ -59,19 +60,35 @@ namespace stencil1d
      * (`--length N --repeat M`). Named options take precedence. The named form also accepts the
      * `--length=N` / `--repeat=M` spelling.
      *
+     * `--all-backends` is an opt-in diagnostic flag and may appear anywhere on the command line. It
+     * is removed before the positional and named forms are parsed.
+     *
      * @return @c EXIT_SUCCESS on a valid command line, @c EXIT_FAILURE otherwise.
      */
-    inline int parseCmd(int argc, char* argv[], int& length, int& repeat)
+    inline int parseCmd(int argc, char* argv[], int& length, int& repeat, bool& allBackends)
     {
         length = defaultLength;
         repeat = defaultRepeat;
+        allBackends = false;
+
+        // Drop the diagnostic flag so it does not disturb the positional/named grammar.
+        std::vector<char const*> args;
+        args.reserve(static_cast<std::size_t>(argc > 0 ? argc - 1 : 0));
+        for(int i = 1; i < argc; ++i)
+        {
+            if(std::strcmp(argv[i], "--all-backends") == 0)
+                allBackends = true;
+            else
+                args.push_back(argv[i]);
+        }
+        int const numArgs = static_cast<int>(args.size());
 
         // HeCBench positional form `./main <length> <repeat>`.
-        if(argc == 3 && detail::allDigits(argv[1]) && detail::allDigits(argv[2]))
+        if(numArgs == 2 && detail::allDigits(args[0]) && detail::allDigits(args[1]))
         {
             int parsedLength = 0;
             int parsedRepeat = 0;
-            if(!detail::parseInt(argv[1], parsedLength) || !detail::parseInt(argv[2], parsedRepeat))
+            if(!detail::parseInt(args[0], parsedLength) || !detail::parseInt(args[1], parsedRepeat))
             {
                 std::cerr << "Error: length and repeat must be decimal integers.\n";
                 return EXIT_FAILURE;
@@ -87,9 +104,9 @@ namespace stencil1d
         }
 
         // Named form. Both `--name value` and `--name=value` are accepted.
-        for(int i = 1; i < argc; ++i)
+        for(int i = 0; i < numArgs; ++i)
         {
-            std::string const arg = argv[i];
+            std::string const arg = args[static_cast<std::size_t>(i)];
 
             // -1: error, 0: option not matched, 1: option consumed
             auto consume = [&](char const* name, int& target) -> int
@@ -100,12 +117,12 @@ namespace stencil1d
                 char const* value = nullptr;
                 if(arg == option)
                 {
-                    if(i + 1 >= argc)
+                    if(i + 1 >= numArgs)
                     {
                         std::cerr << "Error: " << option << " requires a value.\n";
                         return -1;
                     }
-                    value = argv[++i];
+                    value = args[static_cast<std::size_t>(++i)];
                 }
                 else if(arg.rfind(assignment, 0) == 0)
                 {

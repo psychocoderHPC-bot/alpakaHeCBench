@@ -1061,9 +1061,9 @@
         "(?:stencil1d kernel runtime \\(batch of [0-9]+\\): )([0-9.+-e]+)(?: us/kernel)",
         [
             "--length",
-            "1021",
+            "134217728",
             "--repeat",
-            "2"
+            "1000"
         ]
     ],
     "su3": [

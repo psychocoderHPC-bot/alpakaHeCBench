@@ -54,15 +54,22 @@ pattern is not shift invariant.
 | upstream positional | `stencil1d <length> <repeat>` |
 | named | `stencil1d --length <N> --repeat <R>` |
 | named assignment | `stencil1d --length=<N> --repeat=<R>` |
+| diagnostic | `stencil1d --length <N> --repeat <R> --all-backends` |
 
 `length` defaults to `1 << 20` and `repeat` to `5`. Both arguments must be positive decimal integers.
 Invalid, missing or unknown arguments print an error to stderr and exit non-zero. Named options take
 precedence over the positional form.
 
+By default the program runs exactly one backend and prints exactly one timing line. It selects the
+first available non-host accelerator; if none is available it uses the host CPU with `CpuOmpBlocks`,
+falling back to `CpuSerial`. The `NumaCpu` device spec is skipped because it duplicates the host CPU
+device on hwloc builds. `--all-backends` is an opt-in diagnostic that runs every available backend
+and prints one line per backend; do not use it with the benchmark harness, which sums all matching
+lines.
+
 The measured metric is the kernel-compute time: `repeat` back-to-back kernel launches between two
 synchronisations, divided by `repeat`. One warm-up launch runs before the measured region. The
-program prints `stencil1d kernel runtime (batch of <repeat>): <value> us/kernel` and a secondary
-per-launch end-to-end time.
+program prints one line, `stencil1d kernel runtime (batch of <repeat>): <value> us/kernel`.
 
 ## Test semantics
 
@@ -81,9 +88,13 @@ The arithmetic is integer addition, so the reference is exact and `verify()` com
 (tolerance 0). NaN and Inf are rejected explicitly. A non-zero exit code signals failure; a pass
 prints `Stencil1d verification PASSED`.
 
-The CTest case runs `--length 1021 --repeat 2`, the arguments in `src/scripts/benchmarks/subset.json`,
-and requires the runtime line above. `1021` is not a multiple of the tile size, so the last partial
-block is exercised.
+The CTest case runs `--length 1021 --repeat 2` and requires the runtime line above. `1021` is not a
+multiple of the tile size, so the last partial block is exercised. This pair is a smoke test only.
+
+The campaign workload in `src/scripts/benchmarks/subset.json` and the mirrored `benchmarks.yaml`
+test args is `--length 134217728 --repeat 1000`, the ORNL canonical run. `134217728 = 2^27` is a
+multiple of `BLOCK_SIZE = 256`, so both the native ORNL variants and this port handle the full
+domain without a partial trailing block.
 
 ## Build and run
 

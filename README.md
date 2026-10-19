@@ -110,6 +110,7 @@ to a GPU with a lower compute capability. Use
 | benchmark | native HeCBench models | this repo (alpaka) |
 | --- | --- | --- |
 | `cross` | cuda, hip, omp, sycl | alpaka (single source) |
+| `stencil1d` | cuda, hip, omp, sycl | alpaka (single source) |
 
 ## Native comparison
 

@@ -26,7 +26,9 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <exception>
 #include <iostream>
+#include <optional>
 #include <vector>
 
 namespace stencil1dAlpaka
@@ -114,8 +116,8 @@ namespace stencil1dAlpaka
      *
      * The reference enqueues `repeat` back-to-back kernel launches and divides the wall time of the
      * whole region by `repeat`, with a single device synchronisation at the end. This function
-     * reproduces that scope exactly and reports the per-kernel time. The per-launch end-to-end time
-     * (one launch + one synchronisation) is reported as a secondary metric.
+     * reproduces that scope exactly and reports one per-kernel time line. Exactly one line is
+     * printed per process because the default backend selection runs a single executor.
      *
      * Run the program several times to obtain independent samples; the reference provides one value
      * per invocation too.
@@ -136,15 +138,6 @@ namespace stencil1dAlpaka
         double const us
             = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() * 1e-3 / repeat;
         printf("stencil1d kernel runtime (batch of %d): %.3f us/kernel\n", repeat, us);
-
-        // secondary: end-to-end single launch
-        auto const s2 = std::chrono::steady_clock::now();
-        queue.enqueue(launch, kernel);
-        onHost::wait(queue);
-        auto const e2 = std::chrono::steady_clock::now();
-        printf(
-            "stencil1d per-launch end-to-end: %.3f us\n",
-            std::chrono::duration_cast<std::chrono::nanoseconds>(e2 - s2).count() * 1e-3);
     }
 
     auto example(auto const deviceSpec, auto const exec, int length, int repeat) -> int
@@ -207,14 +200,108 @@ auto main(int argc, char* argv[]) -> int
 {
     int length = stencil1d::defaultLength;
     int repeat = stencil1d::defaultRepeat;
+    bool allBackends = false;
 
-    if(int const ret = stencil1d::parseCmd(argc, argv, length, repeat))
+    if(int const ret = stencil1d::parseCmd(argc, argv, length, repeat, allBackends))
         return ret;
 
     using namespace alpaka;
 
-    return onHost::executeForEachIfHasDevice(
-        [=](auto const& backend)
-        { return stencil1dAlpaka::example(onHost::makeDeviceSpec(backend), getExecutor(backend), length, repeat); },
-        onHost::allBackends(onHost::enabledDeviceSpecs, exec::enabledExecutors));
+    constexpr auto backends = onHost::allBackends(onHost::enabledDeviceSpecs, exec::enabledExecutors);
+
+    // Turn an allocation or backend exception into one stderr diagnostic and a nonzero exit instead
+    // of letting the process abort.
+    auto guardedRun = [&](auto const& deviceSpec, auto const& executor) -> int
+    {
+        try
+        {
+            return stencil1dAlpaka::example(deviceSpec, executor, length, repeat);
+        }
+        catch(std::exception const& e)
+        {
+            fprintf(stderr, "Error: benchmark execution failed: %s\n", e.what());
+            return EXIT_FAILURE;
+        }
+        catch(...)
+        {
+            fprintf(stderr, "Error: benchmark execution failed.\n");
+            return EXIT_FAILURE;
+        }
+    };
+
+    // Diagnostic mode: run every available backend. This prints several timing lines and is not
+    // suitable for the benchmark harness.
+    if(allBackends)
+    {
+        int result = EXIT_SUCCESS;
+        std::apply(
+            [&](auto const&... backend)
+            {
+                auto const attempt = [&](auto const& candidate)
+                {
+                    auto const deviceSpec = onHost::DeviceSpec{candidate};
+                    auto devSelector = onHost::makeDeviceSelector(deviceSpec);
+                    if(!devSelector.isAvailable())
+                        return;
+                    if(guardedRun(deviceSpec, alpaka::getExecutor(candidate)) != EXIT_SUCCESS)
+                        result = EXIT_FAILURE;
+                };
+                (attempt(backend), ...);
+            },
+            backends);
+        return result;
+    }
+
+    // Default: exactly one backend. Prefer the first available non-host accelerator, then one host
+    // executor. Running one executor per process keeps the harness regex from summing several
+    // timing lines.
+    std::optional<int> exitCode;
+
+    auto attemptAccelerator = [&](auto const& backend)
+    {
+        if(exitCode.has_value())
+            return;
+        auto const deviceSpec = onHost::DeviceSpec{backend};
+        if(deviceSpec.getApi() == api::host)
+            return;
+        auto devSelector = onHost::makeDeviceSelector(deviceSpec);
+        if(!devSelector.isAvailable())
+            return;
+        exitCode = guardedRun(deviceSpec, alpaka::getExecutor(backend));
+    };
+
+    std::apply([&](auto const&... backend) { (attemptAccelerator(backend), ...); }, backends);
+
+    if(!exitCode.has_value())
+    {
+        // Host fallback: prefer the OpenMP block executor, then the serial executor. Skip the
+        // NumaCpu device spec, which duplicates the host CPU device on hwloc builds.
+        auto attemptHost = [&](auto const& backend)
+        {
+            if(exitCode.has_value())
+                return;
+            auto const deviceSpec = onHost::DeviceSpec{backend};
+            if(deviceSpec.getApi() != api::host)
+                return;
+            if(deviceSpec.getDeviceKind() == deviceKind::numaCpu)
+                return;
+            auto const executor = alpaka::getExecutor(backend);
+            if(executor != exec::cpuOmpBlocks && executor != exec::cpuSerial)
+                return;
+            auto devSelector = onHost::makeDeviceSelector(deviceSpec);
+            if(!devSelector.isAvailable())
+                return;
+            exitCode = guardedRun(deviceSpec, executor);
+        };
+
+        std::apply([&](auto const&... backend) { (attemptHost(backend), ...); }, backends);
+    }
+
+    if(!exitCode.has_value())
+    {
+        fprintf(stderr, "No supported accelerator device is available.\n");
+        return EXIT_FAILURE;
+    }
+
+    return *exitCode;
 }
