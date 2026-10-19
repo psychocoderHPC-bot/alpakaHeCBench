@@ -41,7 +41,7 @@ The primary interface matches the native binary:
 The named form is also accepted:
 
 ```text
-./main [--iterations <n>] [--length <n>] [--repeat <n>]
+./main [--iterations <n>] [--length <n>] [--repeat <n>] [--all-backends]
 ```
 
 The options also accept the `--option=value` spelling. Defaults are `iterations = 100`,
@@ -49,6 +49,17 @@ The options also accept the `--option=value` spelling. Defaults are `iterations 
 positive integers. Unknown options, missing option values, malformed numbers, non-positive values,
 a length above the bound and extra positional arguments print a message to stderr and exit
 non-zero. `--help` prints the usage line and exits zero.
+
+Without `--all-backends` one invocation selects exactly one backend and one executor and reports
+one timing line:
+
+1. the first available non-host accelerator (CUDA, HIP or SYCL, including a SYCL CPU device),
+2. otherwise `CpuOmpBlocks` on the host CPU,
+3. otherwise `CpuSerial` on the host CPU.
+
+`NumaCpu` is always skipped, so the host CPU is never measured twice. The campaign metadata in
+`benchmarks.yaml` and `subset.json` uses the HeCBench reference count `100`; `--all-backends` is
+opt-in and is not used by the campaign.
 
 ## Test semantics
 
@@ -63,6 +74,11 @@ A warm-up pass validates every test case. The measured passes skip the copy-back
 verification, so only the per-case launch loop is timed. The reported value is the median over the
 `repeat` measured passes. Only the back-to-back kernel enqueues between two device synchronizations
 are inside the timed region; allocation, host/device copies and validation stay outside.
+
+The median is the benchmark metric of this port, not the single ORNL kernel time. ORNL launches the
+whole test-case loop once and prints its total; this port discards a validated warm-up and reports
+the median of `repeat` measured totals. Campaign results are therefore comparable across alpaka
+backends, but the absolute value is not byte-for-byte the ORNL metric.
 
 ## Provenance
 
@@ -106,8 +122,9 @@ cmake --build build/cuda --target reverse-alpaka -j
 ```
 
 The target name is `reverse-alpaka` and the executable is written to
-`build/<preset>/bin/alpaka/reverse`. The benchmark runs every enabled backend and executor and
-prints one timing block per device. Set `CUDA_VISIBLE_DEVICES=<idx>` to pin a GPU.
+`build/<preset>/bin/alpaka/reverse`. By default the benchmark runs one selected backend and prints
+one timing line. Set `CUDA_VISIBLE_DEVICES=<idx>` to pin a GPU, or pass `--all-backends` to run
+every enabled non-NUMA backend for diagnostics.
 
 ## Test
 
@@ -115,5 +132,7 @@ prints one timing block per device. Set `CUDA_VISIBLE_DEVICES=<idx>` to pin a GP
 ctest --test-dir build/cpu-serial -R reverse-alpaka --output-on-failure
 ```
 
-CTest runs the native positional form `reverse-alpaka 4` and matches the median timing line. The
-test fails when validation fails or the expected timing line is missing.
+CTest runs the native positional form `reverse-alpaka 4` and matches the median timing line. It
+also sets `FAIL_REGULAR_EXPRESSION "FAIL"`: CTest treats a matching `PASS_REGULAR_EXPRESSION` as a
+pass even when the process exits non-zero, so the failure marker is what makes a validation failure
+fail the test. The test also fails when the expected timing line is missing.

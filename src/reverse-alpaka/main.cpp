@@ -34,7 +34,9 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
+#include <optional>
 #include <random>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -202,8 +204,9 @@ auto main(int argc, char* argv[]) -> int
     int iterations = reverse::defaultIterations;
     int length = reverse::defaultLength;
     int repeat = reverse::defaultRepeat;
+    bool allBackends = false;
 
-    if(int const ret = reverse::parseCmd(argc, argv, iterations, length, repeat); ret != EXIT_SUCCESS)
+    if(int const ret = reverse::parseCmd(argc, argv, iterations, length, repeat, allBackends); ret != EXIT_SUCCESS)
         return ret;
     // parseCmd returns success for --help after printing the usage line; do not run the benchmark.
     for(int i = 1; i < argc; ++i)
@@ -212,15 +215,87 @@ auto main(int argc, char* argv[]) -> int
 
     using namespace alpaka;
 
-    return onHost::executeForEachIfHasDevice(
-        [=](auto const& backend)
-        {
-            return reverseAlpaka::example(
-                onHost::makeDeviceSpec(backend),
-                getExecutor(backend),
-                iterations,
-                length,
-                repeat);
-        },
-        onHost::allBackends(onHost::enabledDeviceSpecs, exec::enabledExecutors));
+    constexpr auto backends = onHost::allBackends(onHost::enabledDeviceSpecs, exec::enabledExecutors);
+
+    auto const isNumaCpu = [](auto const& backend)
+    { return onHost::DeviceSpec{backend}.getDeviceKind() == deviceKind::numaCpu; };
+    auto const isAvailable = [](auto const& backend)
+    {
+        auto const deviceSpec = onHost::DeviceSpec{backend};
+        return onHost::makeDeviceSelector(deviceSpec).isAvailable();
+    };
+    auto const runBackend = [=](auto const& backend) -> int
+    {
+        return reverseAlpaka::example(
+            onHost::makeDeviceSpec(backend),
+            getExecutor(backend),
+            iterations,
+            length,
+            repeat);
+    };
+
+    // Opt-in campaign mode: still one timing line per backend, but every enabled non-NUMA backend runs.
+    if(allBackends)
+    {
+        return onHost::executeForEachIfHasDevice(
+            [&](auto const& backend) -> int
+            {
+                if(isNumaCpu(backend))
+                    return EXIT_SUCCESS;
+                return runBackend(backend);
+            },
+            backends);
+    }
+
+    // Default: exactly one backend and executor, so one invocation reports one timing line.
+    std::optional<int> exitCode;
+
+    auto const attemptAccelerator = [&](auto const& backend)
+    {
+        if(exitCode.has_value())
+            return;
+        auto const deviceSpec = onHost::DeviceSpec{backend};
+        if(deviceSpec.getApi() == api::host || isNumaCpu(backend) || !isAvailable(backend))
+            return;
+        exitCode = runBackend(backend);
+    };
+    // Pass 1: first available non-host accelerator.
+    std::apply([&](auto const&... backend) { (attemptAccelerator(backend), ...); }, backends);
+
+    auto const attemptHost = [&](auto const& backend)
+    {
+        if(exitCode.has_value())
+            return;
+        auto const deviceSpec = onHost::DeviceSpec{backend};
+        if(deviceSpec.getApi() != api::host || deviceSpec.getDeviceKind() != deviceKind::cpu
+           || !isAvailable(backend))
+            return;
+        using Executor = std::remove_cvref_t<ALPAKA_TYPEOF(getExecutor(backend))>;
+        if constexpr(std::is_same_v<Executor, exec::CpuOmpBlocks>)
+            exitCode = runBackend(backend);
+    };
+    // Pass 2: host CPU with the OpenMP block executor.
+    std::apply([&](auto const&... backend) { (attemptHost(backend), ...); }, backends);
+
+    auto const attemptSerial = [&](auto const& backend)
+    {
+        if(exitCode.has_value())
+            return;
+        auto const deviceSpec = onHost::DeviceSpec{backend};
+        if(deviceSpec.getApi() != api::host || deviceSpec.getDeviceKind() != deviceKind::cpu
+           || !isAvailable(backend))
+            return;
+        using Executor = std::remove_cvref_t<ALPAKA_TYPEOF(getExecutor(backend))>;
+        if constexpr(std::is_same_v<Executor, exec::CpuSerial>)
+            exitCode = runBackend(backend);
+    };
+    // Pass 3: serial CPU fallback.
+    std::apply([&](auto const&... backend) { (attemptSerial(backend), ...); }, backends);
+
+    if(!exitCode.has_value())
+    {
+        std::cerr << "No supported accelerator or CPU executor is available." << std::endl;
+        return EXIT_FAILURE;
+    }
+    return *exitCode;
 }

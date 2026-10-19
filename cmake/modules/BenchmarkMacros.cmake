@@ -10,7 +10,7 @@
 
 function(add_hecbench_benchmark)
     set(options "")
-    set(oneValueArgs NAME MODEL TEST_REGEX TEST_TIMEOUT)
+    set(oneValueArgs NAME MODEL TEST_REGEX TEST_FAIL_REGEX TEST_TIMEOUT)
     set(multiValueArgs SOURCES CATEGORIES COMPILE_OPTIONS LINK_LIBRARIES INCLUDE_DIRS TEST_ARGS)
     cmake_parse_arguments(BENCH "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
@@ -98,6 +98,13 @@ function(add_hecbench_benchmark)
             TIMEOUT ${BENCH_TEST_TIMEOUT}
             LABELS "${BENCH_MODEL_LOWER};${BENCH_CATEGORIES}"
         )
+        # A matching PASS regex makes CTest ignore the exit status. An explicit failure marker
+        # makes validation failures fail the test even when the timing line was printed.
+        if(BENCH_TEST_FAIL_REGEX)
+            set_tests_properties(${TARGET_NAME} PROPERTIES
+                FAIL_REGULAR_EXPRESSION "${BENCH_TEST_FAIL_REGEX}"
+            )
+        endif()
     endif()
 
     message(STATUS "Registered benchmark: ${TARGET_NAME} (target '${TARGET_NAME}', output '${CMAKE_BINARY_DIR}/bin/${BENCH_MODEL_LOWER}/${BENCH_NAME}')")

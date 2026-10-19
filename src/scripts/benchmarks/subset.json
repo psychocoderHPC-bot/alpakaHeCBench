@@ -1004,7 +1004,7 @@
     "reverse": [
         "(?:Total kernel execution time \\(median of [0-9]+\\): )([0-9.+-e]+)(?: \\(s\\))",
         [
-            "4"
+            "100"
         ]
     ],
     "rsc": [

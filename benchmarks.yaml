@@ -2363,7 +2363,8 @@ reverse:
   models: [cuda, hip, omp, sycl, alpaka]
   test:
     regex: '(?:Total kernel execution time \(median of [0-9]+\): )([0-9.+-e]+)(?: \(s\))'
-    args: ["4"]
+    # HeCBench canonical run count; CTest keeps the shorter 4-case smoke test.
+    args: ["100"]
     timeout: 300
 
 reverse2D:
