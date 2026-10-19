@@ -26,8 +26,11 @@ out[y*Lx + x] = norm * in[y*Lx + x]
 
 with `sigma = 0.01`, `delta = sigma/(1+4*sigma)` and `norm = 1/(1+4*sigma)`.
 The algorithm launches one kernel per iteration, `niter` times, and swaps the
-two field buffers after each step. A flat 1D buffer keeps the indexing
-independent of any backend pitch convention.
+two field buffers after each step. The kernel addresses cells with a 2-D
+`Vec` index map. The grid has no guard cells, so periodic neighbours wrap
+through explicit range checks. Host allocations with a 2-D extent may carry a
+padded row pitch, so the port fills the initial field and reads the result back
+through `getMdSpan()`.
 
 The coefficients are stored as `float` but the division is evaluated in double
 and rounded once, matching the reference expression `sigma / (1.0 + 4.0*sigma)`.

@@ -16,8 +16,10 @@
  * two field buffers swapped after every step.
  *
  * There is a single kernel source. The alpaka backend maps a frame to a host OpenMP thread or to a
- * CUDA thread; only the launch configuration changes, never the algorithm. The field is a flat 1D
- * buffer in row-major order so the linear indexing is independent of any backend pitch convention.
+ * CUDA thread; only the launch configuration changes, never the algorithm. Work division and
+ * indexing use a 2-D Vec IdxMap. The grid has no guard cells, so each periodic neighbour wraps
+ * through an explicit range check. Host allocations with a 2-D extent may carry a padded row pitch,
+ * so the initial field and the result are transferred through getMdSpan().
  */
 
 #include "helper.hpp"
@@ -43,15 +45,13 @@
 
 namespace heat2dAlpaka
 {
-    //! Threads per frame; 256 is a portable block size for the host and the GPU backends.
-    constexpr uint32_t frameExtent = 256u;
-
     /** One explicit heat-equation step with periodic boundary conditions.
      *
-     * Each thread owns one cell of the flat row-major buffer. It reads the four wrapped neighbours,
-     * computes the new value with the same single-precision coefficients and arithmetic order as the
-     * pinned reference and writes it to the destination buffer. Because reads and writes use separate
-     * buffers there is no aliasing, exactly like the reference's `out`/`in` pair.
+     * Each thread owns one cell of the row-major field, addressed by a 2-D index. It reads the four
+     * wrapped neighbours, computes the new value with the same single-precision coefficients and
+     * arithmetic order as the pinned reference and writes it to the destination buffer. Because reads
+     * and writes use separate buffers there is no aliasing, exactly like the reference's `out`/`in`
+     * pair.
      */
     struct HeatStepKernel
     {
@@ -67,20 +67,24 @@ namespace heat2dAlpaka
             using namespace alpaka;
 
             // `int` indexing matches the pinned reference and keeps the index arithmetic on 32-bit
-            // integers. `Lx*Ly` must fit in `int` (validated by the caller). The four wrapped
-            // neighbours are derived relative to the linear centre index to avoid re-deriving `y*Lx`
-            // for every neighbour; the wrap conditions are the same as the reference's `%`.
-            int const total = Lx * Ly;
-            for(auto idx : onAcc::makeIdxMap(acc, onAcc::worker::threadsInGrid, IdxRange{Vec{total}}))
+            // integers. `Lx*Ly` must fit in `int` (validated by the caller). The grid is indexed
+            // directly in two dimensions, so no div/mod is needed to recover x and y from a flat
+            // index. The wrap conditions are the same as the reference's `%`.
+            for(auto idx : onAcc::makeIdxMap(
+                    acc,
+                    onAcc::worker::threadsInGrid,
+                    IdxRange{Vec<int, 2u>{0, 0}, Vec<int, 2u>{Ly, Lx}}))
             {
-                int const v00 = idx.x();
-                int const x = v00 % Lx;
-                int const y = v00 / Lx;
-                int const v0p = (x + 1 == Lx) ? v00 - (Lx - 1) : v00 + 1;
-                int const v0m = (x == 0) ? v00 + (Lx - 1) : v00 - 1;
-                int const vp0 = (y + 1 == Ly) ? x : v00 + Lx;
-                int const vm0 = (y == 0) ? v00 + (Ly - 1) * Lx : v00 - Lx;
-                out[v00] = norm * in[v00] + delta * (in[v0p] + in[v0m] + in[vp0] + in[vm0]);
+                int const x = idx.x();
+                int const y = idx.y();
+                int const xp = (x + 1 == Lx) ? 0 : x + 1;
+                int const xm = (x == 0) ? Lx - 1 : x - 1;
+                int const yp = (y + 1 == Ly) ? 0 : y + 1;
+                int const ym = (y == 0) ? Ly - 1 : y - 1;
+                out[idx] = norm * in[idx]
+                           + delta
+                                 * (in[Vec<int, 2u>{y, xp}] + in[Vec<int, 2u>{y, xm}]
+                                    + in[Vec<int, 2u>{yp, x}] + in[Vec<int, 2u>{ym, x}]);
             }
         }
     };
@@ -148,7 +152,7 @@ namespace heat2dAlpaka
             return EXIT_FAILURE;
         }
         int const total = Lx * Ly;
-        Vec<int, 1u> const extent{total};
+        Vec<int, 2u> const extent{Ly, Lx};
 
         // Coefficients are stored in single precision, exactly as in the pinned reference. The
         // division is evaluated in double and rounded once to float, matching the reference's
@@ -165,18 +169,24 @@ namespace heat2dAlpaka
 
         std::vector<float> const init = heat2d::makeInitialField(Lx, Ly);
 
+        // The host allocation of a 2-D extent may carry a padded row pitch, so fill and read it
+        // through its MdSpan instead of assuming a flat, contiguous layout.
         auto hInit = onHost::allocHost<float>(extent);
-        for(std::size_t k = 0; k < init.size(); ++k)
-            hInit.data()[k] = init[k];
+        auto hInitMd = hInit.getMdSpan();
+        for(int y = 0; y < Ly; ++y)
+            for(int x = 0; x < Lx; ++x)
+                hInitMd[Vec<int, 2u>{y, x}] = init[static_cast<std::size_t>(y) * Lx + x];
         auto hResult = onHost::allocHost<float>(extent);
 
         auto dA = onHost::alloc<float>(device, extent);
         auto dB = onHost::alloc<float>(device, extent);
 
-        // One frame per `frameExtent` cells; the kernel walks the whole grid with threadsInGrid.
-        uint32_t const numFrames = divCeil(static_cast<uint32_t>(total), frameExtent);
-        onHost::FrameSpec const launch{Vec{numFrames}, Vec{frameExtent}, exec};
-        std::cout << "Launch frames=" << numFrames << " frameExtent=" << frameExtent << std::endl;
+        // 16x16 cells per block; the kernel walks the whole grid with threadsInGrid.
+        constexpr uint32_t tile = 16u;
+        Vec<uint32_t, 2u> const numFrames{divCeil(static_cast<uint32_t>(Ly), tile),
+                                          divCeil(static_cast<uint32_t>(Lx), tile)};
+        onHost::FrameSpec const launch{numFrames, Vec{tile, tile}, exec};
+        std::cout << "Launch frames=" << numFrames << " frameExtent=" << tile << "x" << tile << std::endl;
 
         // Warm-up (untimed), then the measured independent runs.
         double const warmup = runTimed(queue, launch, dA, dB, hInit, delta, norm, Lx, Ly, iters);
@@ -210,8 +220,10 @@ namespace heat2dAlpaka
         onHost::memcpy(queue, hResult, dA);
         onHost::wait(queue);
         std::vector<float> result(static_cast<std::size_t>(total));
-        for(std::size_t k = 0; k < result.size(); ++k)
-            result[k] = hResult.data()[k];
+        auto hResultMd = hResult.getMdSpan();
+        for(int y = 0; y < Ly; ++y)
+            for(int x = 0; x < Lx; ++x)
+                result[static_cast<std::size_t>(y) * Lx + x] = hResultMd[Vec<int, 2u>{y, x}];
         return heat2d::verify(init, Lx, Ly, iters, result);
     }
 
