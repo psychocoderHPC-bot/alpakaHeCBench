@@ -204,6 +204,25 @@ namespace reluAlpaka
         return onHost::FrameSpec{std::max(blocks, 1u), chunkSize, exec};
     }
 
+    /** Build a frame specification for a SIMD kernel with exactly one invocation per worker.
+     *
+     * The worker count and block count are chosen so that the SIMD loop covers whole invocations and is therefore
+     * actually entered. Elements that do not fill another invocation stay in the SIMD algorithm's scalar remainder
+     * path. Using `divCeil` here would over-provision the worker group and push all work into the scalar path.
+     *
+     * @param extent number of elements, in the value type of the spans
+     * @param elementsPerInvocation elements consumed by one `onAcc::SimdAlgo::concurrent()` invocation
+     */
+    auto makeSimdFrameSpec(auto const& exec, uint32_t extent, uint32_t elementsPerInvocation)
+    {
+        using namespace alpaka;
+        constexpr uint32_t maxThreadsPerBlock = 256u;
+        uint32_t const threads
+            = std::min(maxThreadsPerBlock, std::max(extent / elementsPerInvocation, 1u));
+        uint32_t const blocks = std::max(extent / (threads * elementsPerInvocation), 1u);
+        return onHost::FrameSpec{blocks, threads, exec};
+    }
+
     /** Run `repeat` measured iterations of a kernel after one discarded warm-up iteration.
      *
      * All launches of the measured region are enqueued back-to-back on a non-blocking queue and the queue is waited
@@ -287,9 +306,8 @@ namespace reluAlpaka
 
             // impl2: eight fp16 (four half2 packages) per thread and invocation.
             {
-                constexpr uint32_t elementsPerWorker = 8u;
-                auto const frameSpec
-                    = makeFrameSpec<uint16_t>(device, exec, static_cast<uint32_t>(count), elementsPerWorker);
+                constexpr uint32_t elementsPerInvocation = 8u;
+                auto const frameSpec = makeSimdFrameSpec(exec, static_cast<uint32_t>(count), elementsPerInvocation);
                 KernelBundle const kernel{ReluGradVectorKernel{}, dBackprop, dFeature, dGradient};
                 printf(
                     "Average execution time of ReluGrad_impl2 Kernel: %f (us)\n",
@@ -360,9 +378,9 @@ namespace reluAlpaka
                 auto dOutBytes = onHost::alloc<int8_t>(device, byteExtent);
                 onHost::memcpy(queue, dInBytes, hInBytes);
 
-                constexpr uint32_t elementsPerWorker = 4u;
+                constexpr uint32_t elementsPerInvocation = 4u;
                 auto const frameSpec
-                    = makeFrameSpec<int8_t>(device, exec, static_cast<uint32_t>(count * 4), elementsPerWorker);
+                    = makeSimdFrameSpec(exec, static_cast<uint32_t>(count * 4), elementsPerInvocation);
                 KernelBundle const kernel{ReluByteKernel{}, dOutBytes, dInBytes};
                 printf(
                     "Average execution time of Relu_impl2 Kernel: %f (us)\n",
