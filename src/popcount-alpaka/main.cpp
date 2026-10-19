@@ -120,7 +120,12 @@ namespace popcountAlpaka
         }
     };
 
-    /** pc5: eight byte lookups in a 256 entry table, summed. */
+    /** pc5: eight byte lookups in a 256 entry table, summed.
+     *
+     * The table lives in portable alpaka block shared memory. Every block fills the 256 entries
+     * cooperatively, then synchronizes, so the lookups hit on-chip memory on CUDA and on every
+     * host executor, matching the constant-memory table placement of the HeCBench reference.
+     */
     struct Pc5LookupTable
     {
         ALPAKA_FN_ACC void operator()(
@@ -130,16 +135,10 @@ namespace popcountAlpaka
             int count) const
         {
             using namespace alpaka;
-            // Table from the HeCBench reference.
-            constexpr uint8_t lut[256] = {
-                0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-                1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-                1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-                2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-                1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-                2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-                2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-                3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8};
+            auto& lut = onAcc::declareSharedVar<unsigned char[256], uniqueId()>(acc);
+            for(auto entry : onAcc::makeIdxMap(acc, onAcc::worker::threadsInBlock, IdxRange{256u}))
+                lut[entry.x()] = static_cast<unsigned char>(alpaka::popcount(static_cast<uint32_t>(entry.x())));
+            onAcc::syncBlockThreads(acc);
             for(auto idx : onAcc::makeIdxMap(acc, onAcc::worker::linearThreadsInGrid, IdxRange{count}))
             {
                 uint64_t const x = static_cast<uint64_t>(input[idx]);
@@ -202,8 +201,10 @@ namespace popcountAlpaka
 
     /** Time one discarded warm-up launch followed by `repeat` launches under one timer.
      *
-     * All `repeat` launches are enqueued, then the queue is synchronized once. The reported value
-     * is `total_us / repeat`, exactly the HeCBench timing scope.
+     * The run queue is non-blocking, so the host does not synchronize inside every enqueue. All
+     * `repeat` launches are queued back-to-back, then the queue is synchronized once. The reported
+     * value is `total_us / repeat`, the same launch-to-wait scope as the HeCBench reference on GPU
+     * and CPU.
      */
     template<typename T_KernelBundle>
     double timeKernel(auto& queue, auto const& frameSpec, T_KernelBundle const& kernel, int repeat)
@@ -261,8 +262,9 @@ namespace popcountAlpaka
 
         auto devSelector = onHost::makeDeviceSelector(deviceSpec);
         onHost::Device device = devSelector.makeDevice(0);
-        // A blocking queue reduces the launch overhead for host devices.
-        onHost::Queue queue = device.makeQueue(queueKind::blocking);
+        // A non-blocking queue keeps the timed region to back-to-back enqueues plus one wait, so
+        // GPU and host devices measure the same launch-to-wait scope as the HeCBench reference.
+        onHost::Queue queue = device.makeQueue(queueKind::nonBlocking);
 
         Vec<int, 1u> const extent(count);
         auto hIn = onHost::allocHost<uint64_t>(extent);
