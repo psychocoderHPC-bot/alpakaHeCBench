@@ -2339,8 +2339,11 @@ recursiveGaussian:
 
 relu:
   categories: [algorithms]
-  models: [cuda, hip, sycl]
-  # No test metadata available
+  models: [alpaka, cuda, hip, sycl]
+  test:
+    regex: 'Average execution time of (?:ReluGrad|Relu)_impl[12] Kernel ?: ([0-9.+-e]+) \(us\)'
+    args: ["10000000", "100"]
+    timeout: 300
 
 remap:
   categories: [algorithms]
